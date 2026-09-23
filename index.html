@@ -1,478 +1,944 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemeBarn - Home of Viral Memes</title>
+    <meta name="description" content="MemeBarn - Home of Viral Memes & Verified Ecosystem">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#07080B',
+                        glass: 'rgba(15, 17, 23, 0.75)',
+                        neonCyan: '#00F2FE',
+                        electricPurple: '#7F00FF',
+                        emeraldGreen: '#10B981',
+                        cardBg: '#0F1117'
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
 
-<title>Glass Whiteboard Pro</title>
+    <!-- Custom CSS for Glassmorphism & Utilities -->
+    <style>
+        body {
+            background-color: #07080B;
+            color: #FFFFFF;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(15, 17, 23, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .text-gradient {
+            background: linear-gradient(to right, #00F2FE, #7F00FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hover-glow:hover {
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            border-color: rgba(0, 242, 254, 0.5);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #07080B; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+        /* Hide elements by default */
+        .hidden { display: none !important; }
+    </style>
 
-<style>
-
-:root{
-    --bg1:#0f172a;
-    --bg2:#1e293b;
-    --glass:rgba(255,255,255,0.08);
-    --border:rgba(255,255,255,0.15);
-    --shadow:0 8px 30px rgba(0,0,0,.35);
-}
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
-}
-
-html,body{
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    font-family:'Inter',sans-serif;
-    background:
-    radial-gradient(circle at top left,#334155 0%,transparent 30%),
-    radial-gradient(circle at bottom right,#2563eb 0%,transparent 30%),
-    linear-gradient(135deg,var(--bg1),var(--bg2));
-}
-
-body{
-    display:flex;
-    flex-direction:column;
-}
-
-/* ===== TOP BAR ===== */
-
-.toolbar{
-    position:fixed;
-    top:18px;
-    left:50%;
-    transform:translateX(-50%);
-    z-index:20;
-
-    display:flex;
-    align-items:center;
-    gap:14px;
-
-    padding:14px 18px;
-
-    border-radius:28px;
-
-    background:var(--glass);
-
-    backdrop-filter:blur(18px);
-    -webkit-backdrop-filter:blur(18px);
-
-    border:1px solid var(--border);
-
-    box-shadow:var(--shadow);
-}
-
-/* ===== BUTTON ===== */
-
-.tool-btn{
-    width:58px;
-    height:58px;
-
-    border:none;
-    outline:none;
-
-    cursor:pointer;
-
-    border-radius:20px;
-
-    background:rgba(255,255,255,0.12);
-
-    color:white;
-
-    font-size:28px;
-
-    transition:0.2s ease;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.08),
-    0 4px 14px rgba(0,0,0,.25);
-}
-
-.tool-btn:hover{
-    transform:translateY(-2px);
-    background:rgba(255,255,255,0.18);
-}
-
-.tool-btn:active{
-    transform:scale(.92);
-}
-
-/* ===== COLOR PICKER ===== */
-
-.color-wrap{
-    width:58px;
-    height:58px;
-
-    overflow:hidden;
-
-    border-radius:20px;
-
-    border:2px solid rgba(255,255,255,0.2);
-
-    box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.1),
-    0 4px 14px rgba(0,0,0,.25);
-}
-
-.color-picker{
-    width:120%;
-    height:120%;
-    margin:-10%;
-    border:none;
-    cursor:pointer;
-    background:none;
-}
-
-/* ===== RANGE ===== */
-
-.slider-box{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    color:white;
-    min-width:130px;
-}
-
-.slider-label{
-    font-size:12px;
-    opacity:.8;
-}
-
-.range{
-    width:130px;
-    accent-color:white;
-}
-
-/* ===== CANVAS ===== */
-
-canvas{
-    width:100%;
-    height:100%;
-    display:block;
-    touch-action:none;
-    cursor:crosshair;
-}
-
-/* ===== TITLE ===== */
-
-.logo{
-    position:fixed;
-    top:24px;
-    left:28px;
-    z-index:10;
-
-    color:white;
-
-    font-size:22px;
-    font-weight:700;
-    letter-spacing:.5px;
-
-    text-shadow:0 4px 10px rgba(0,0,0,.4);
-}
-
-.logo span{
-    opacity:.65;
-    font-weight:500;
-}
-
-/* ===== MOBILE ===== */
-
-@media(max-width:700px){
-
-    .toolbar{
-        width:95%;
-        justify-content:center;
-        gap:10px;
-        padding:12px;
-        border-radius:24px;
-    }
-
-    .tool-btn{
-        width:52px;
-        height:52px;
-        font-size:24px;
-    }
-
-    .slider-box{
-        min-width:90px;
-    }
-
-    .range{
-        width:90px;
-    }
-
-    .logo{
-        font-size:18px;
-        top:100px;
-        left:50%;
-        transform:translateX(-50%);
-    }
-}
-
-</style>
+    <!-- Firebase Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="antialiased font-sans selection:bg-neonCyan selection:text-obsidian relative min-h-screen flex flex-col">
 
-<div class="logo">
-    Whiteboard <span>Ultra</span>
-</div>
+    <!-- Global Toast Notification -->
+    <div id="toast-container" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-<div class="toolbar">
+    <!-- Header / Navbar -->
+    <nav class="glass-panel sticky top-0 z-40 border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-3">
+                    <img id="nav-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300F2FE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 22 22 22'/%3E%3C/svg%3E" alt="Logo" class="w-10 h-10 object-contain rounded-full bg-white/5 p-1 border border-white/10">
+                    <div>
+                        <h1 id="nav-title" class="text-2xl font-bold tracking-tight text-white">MemeBarn</h1>
+                        <p class="text-xs text-gray-400 font-mono">Home of Viral Memes</p>
+                    </div>
+                </div>
+                <div>
+                    <a id="nav-twitter" href="#" target="_blank" class="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm font-medium">
+                        <i data-lucide="twitter" class="w-4 h-4 text-neonCyan"></i>
+                        <span class="hidden sm:inline">Official X / Dev</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <button class="tool-btn" id="undo">↩️</button>
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="relative py-16 sm:py-24 overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-electricPurple/20 via-obsidian to-obsidian -z-10"></div>
+            
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emeraldGreen/10 border border-emeraldGreen/20 text-emeraldGreen text-xs font-mono mb-6">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    100% Transparency & Community Driven
+                </div>
+                
+                <h2 id="hero-title" class="text-4xl sm:text-6xl font-bold mb-4 tracking-tight">
+                    Welcome to <span class="text-gradient">MemeBarn</span>
+                </h2>
+                <p class="text-gray-400 max-w-2xl mx-auto text-lg mb-10">Discover, analyze, and track the most explosive meme coins on the Solana ecosystem. Real-time data, full transparency.</p>
+                
+                <!-- Stats Banner -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+                    <div class="glass-panel rounded-xl p-4 flex flex-col items-center">
+                        <i data-lucide="coins" class="w-6 h-6 text-neonCyan mb-2"></i>
+                        <span id="stat-coins" class="text-2xl font-bold text-white">0</span>
+                        <span class="text-xs text-gray-400 font-mono uppercase">Total Released Coins</span>
+                    </div>
+                    <div class="glass-panel rounded-xl p-4 flex flex-col items-center">
+                        <i data-lucide="network" class="w-6 h-6 text-electricPurple mb-2"></i>
+                        <span class="text-2xl font-bold text-white">Solana</span>
+                        <span class="text-xs text-gray-400 font-mono uppercase">Network Chain</span>
+                    </div>
+                    <div class="glass-panel rounded-xl p-4 flex flex-col items-center">
+                        <i data-lucide="activity" class="w-6 h-6 text-emeraldGreen mb-2"></i>
+                        <span class="text-2xl font-bold text-emeraldGreen flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emeraldGreen animate-pulse"></span> Active
+                        </span>
+                        <span class="text-xs text-gray-400 font-mono uppercase">Dev Status</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <button class="tool-btn" id="redo">↪️</button>
+        <!-- Coin Grid Section -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+            <div id="coin-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Coin Cards will be injected here -->
+            </div>
+            
+            <!-- Loading State for Grid -->
+            <div id="grid-loading" class="flex flex-col items-center justify-center py-20 text-gray-500">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-neonCyan mb-4"></i>
+                <p class="font-mono text-sm">Syncing with blockchain data...</p>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="grid-empty" class="hidden flex-col items-center justify-center py-20 text-gray-500">
+                <i data-lucide="ghost" class="w-12 h-12 mb-4 opacity-50"></i>
+                <p class="text-lg">No meme coins released yet in the barn.</p>
+            </div>
+        </section>
+    </main>
 
-    <button class="tool-btn" id="clear">🗑️</button>
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-white/5 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-gray-500 text-sm">© <span id="current-year"></span> MemeBarn Ecosystem. All rights reserved.</p>
+            <p class="text-gray-600 text-xs mt-2 font-mono">Not financial advice. Do your own research.</p>
+        </div>
+    </footer>
 
-    <div class="color-wrap">
-        <input type="color" id="color" class="color-picker" value="#ffffff">
+    <!-- ========================================== -->
+    <!-- COIN DETAIL MODAL (Hidden by default)      -->
+    <!-- ========================================== -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="glass-panel relative w-full max-w-2xl rounded-2xl p-6 sm:p-8 shadow-2xl border border-white/10 animate-[fadeIn_0.2s_ease-out]">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-full transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Header Modal -->
+            <div class="flex items-center gap-4 mb-6">
+                <img id="modal-logo" src="" alt="Coin Logo" class="w-16 h-16 rounded-full object-contain bg-white/5 p-1 border border-white/10">
+                <div>
+                    <h3 id="modal-name" class="text-2xl font-bold text-white flex items-center gap-2">
+                        Coin Name <span id="modal-ticker" class="text-sm px-2 py-0.5 rounded bg-white/10 text-gray-300 font-mono">TICKER</span>
+                    </h3>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-[#14F195]/20 text-[#14F195] border border-[#14F195]/30 flex items-center gap-1 font-mono">
+                            <i data-lucide="link" class="w-3 h-3"></i> Solana
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Address -->
+            <div class="mb-6">
+                <label class="block text-xs text-gray-400 font-mono mb-1 uppercase tracking-wider">Contract Address</label>
+                <div class="flex items-center gap-2">
+                    <code id="modal-ca" class="flex-grow block w-full bg-black/50 border border-white/10 rounded-lg p-3 text-sm text-neonCyan font-mono truncate cursor-pointer hover:bg-black/70 transition-colors" onclick="copyCA()">
+                        Loading...
+                    </code>
+                    <button onclick="copyCA()" class="bg-white/5 border border-white/10 hover:bg-white/10 p-3 rounded-lg transition-colors group relative">
+                        <i data-lucide="copy" class="w-5 h-5 text-gray-300 group-hover:text-white"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                <div class="bg-black/40 border border-white/5 rounded-xl p-3">
+                    <div class="text-xs text-gray-400 font-mono mb-1">Market Cap</div>
+                    <div id="modal-mcap" class="font-bold text-white text-sm sm:text-base truncate">$0.00</div>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-3">
+                    <div class="text-xs text-gray-400 font-mono mb-1">Price (USD)</div>
+                    <div id="modal-price" class="font-bold text-emeraldGreen text-sm sm:text-base truncate">$0.00</div>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-3">
+                    <div class="text-xs text-gray-400 font-mono mb-1">24h Volume</div>
+                    <div id="modal-vol" class="font-bold text-white text-sm sm:text-base truncate">$0.00</div>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-3 relative group">
+                    <div class="text-xs text-gray-400 font-mono mb-1 flex justify-between items-center">
+                        Holders 
+                        <button onclick="refreshHolders()" class="hover:text-neonCyan transition-colors" title="Refresh Holders">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                    <div id="modal-holders" class="font-bold text-electricPurple text-sm sm:text-base truncate flex items-center gap-1">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a id="modal-buy-btn" href="#" target="_blank" class="flex-1 bg-gradient-to-r from-neonCyan to-electricPurple hover:opacity-90 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i> Beli Sekarang di DEX
+                </a>
+                <a id="modal-chart-btn" href="#" target="_blank" class="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all">
+                    <i data-lucide="line-chart" class="w-5 h-5"></i> DexScreener Chart
+                </a>
+                <a id="modal-tw-btn" href="#" target="_blank" class="bg-white/5 border border-white/10 hover:bg-[#1DA1F2]/20 hover:text-[#1DA1F2] hover:border-[#1DA1F2]/50 text-gray-300 font-medium py-3 px-4 rounded-xl flex items-center justify-center transition-all">
+                    <i data-lucide="twitter" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
     </div>
 
-    <div class="slider-box">
-        <div class="slider-label">Brush Size</div>
-        <input type="range" min="1" max="30" value="4" id="size" class="range">
-    </div>
+    <!-- Container for Admin Dynamic DOM Injection -->
+    <div id="admin-root"></div>
 
-</div>
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC                           -->
+    <!-- ========================================== -->
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        lucide.createIcons();
 
-<canvas id="canvas"></canvas>
-
-<script>
-
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-
-const undoBtn = document.getElementById("undo");
-const redoBtn = document.getElementById("redo");
-const clearBtn = document.getElementById("clear");
-
-const colorPicker = document.getElementById("color");
-const sizePicker = document.getElementById("size");
-
-let drawing = false;
-
-let paths = [];
-let redoStack = [];
-
-/* ===== HD QUALITY ===== */
-
-function resizeCanvas(){
-
-    const ratio = Math.max(window.devicePixelRatio || 1, 2);
-
-    canvas.width = window.innerWidth * ratio;
-    canvas.height = window.innerHeight * ratio;
-
-    canvas.style.width = window.innerWidth + "px";
-    canvas.style.height = window.innerHeight + "px";
-
-    ctx.setTransform(ratio,0,0,ratio,0,0);
-
-    redraw();
-}
-
-window.addEventListener("resize",resizeCanvas);
-
-resizeCanvas();
-
-/* ===== POSITION ===== */
-
-function getPos(e){
-
-    const rect = canvas.getBoundingClientRect();
-
-    if(e.touches){
-
-        return{
-            x:e.touches[0].clientX - rect.left,
-            y:e.touches[0].clientY - rect.top
+        // ==========================================
+        // 1. FIREBASE CONFIGURATION (STRICTLY HARDCODED)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDr3laJFOxFbpirBtqPT6Shhr9T1IqGZ9g",
+            authDomain: "memebarn.firebaseapp.com",
+            projectId: "memebarn",
+            storageBucket: "memebarn.firebasestorage.app",
+            messagingSenderId: "186305606859",
+            appId: "1:186305606859:web:64cde4829cd775d420974e",
+            measurementId: "G-46SWWFBYX1"
         };
-    }
 
-    return{
-        x:e.clientX - rect.left,
-        y:e.clientY - rect.top
-    };
-}
-
-/* ===== DRAW ===== */
-
-function startDraw(x,y){
-
-    drawing = true;
-
-    const path = {
-        color:colorPicker.value,
-        size:parseInt(sizePicker.value),
-        points:[{x,y}]
-    };
-
-    paths.push(path);
-
-    redoStack = [];
-}
-
-function moveDraw(x,y){
-
-    if(!drawing) return;
-
-    const current = paths[paths.length - 1];
-
-    current.points.push({x,y});
-
-    redraw();
-}
-
-function stopDraw(){
-
-    drawing = false;
-}
-
-/* ===== ULTRA SMOOTH CURVE ===== */
-
-function drawSmooth(points,color,size){
-
-    if(points.length < 2) return;
-
-    ctx.beginPath();
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = size;
-
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-
-    ctx.shadowBlur = size * 0.6;
-    ctx.shadowColor = color;
-
-    ctx.moveTo(points[0].x,points[0].y);
-
-    for(let i=1;i<points.length-1;i++){
-
-        const xc = (points[i].x + points[i+1].x)/2;
-        const yc = (points[i].y + points[i+1].y)/2;
-
-        ctx.quadraticCurveTo(
-            points[i].x,
-            points[i].y,
-            xc,
-            yc
-        );
-    }
-
-    ctx.lineTo(
-        points[points.length-1].x,
-        points[points.length-1].y
-    );
-
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
-}
-
-/* ===== REDRAW ===== */
-
-function redraw(){
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    for(const path of paths){
-
-        drawSmooth(
-            path.points,
-            path.color,
-            path.size
-        );
-    }
-}
-
-/* ===== MOUSE ===== */
-
-canvas.addEventListener("mousedown",e=>{
-
-    const p = getPos(e);
-
-    startDraw(p.x,p.y);
-});
-
-canvas.addEventListener("mousemove",e=>{
-
-    const p = getPos(e);
-
-    moveDraw(p.x,p.y);
-});
-
-canvas.addEventListener("mouseup",stopDraw);
-
-canvas.addEventListener("mouseleave",stopDraw);
-
-/* ===== TOUCH ===== */
-
-canvas.addEventListener("touchstart",e=>{
-
-    e.preventDefault();
-
-    const p = getPos(e);
-
-    startDraw(p.x,p.y);
-
-},{passive:false});
-
-canvas.addEventListener("touchmove",e=>{
-
-    e.preventDefault();
-
-    const p = getPos(e);
-
-    moveDraw(p.x,p.y);
-
-},{passive:false});
-
-canvas.addEventListener("touchend",stopDraw);
-
-/* ===== TOOLS ===== */
-
-undoBtn.onclick = ()=>{
-
-    if(paths.length){
-
-        redoStack.push(paths.pop());
-
-        redraw();
-    }
-};
-
-redoBtn.onclick = ()=>{
-
-    if(redoStack.length){
-
-        paths.push(redoStack.pop());
-
-        redraw();
-    }
-};
-
-clearBtn.onclick = ()=>{
-
-    paths = [];
-
-    redoStack = [];
-
-    redraw();
-};
-
-</script>
-
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ==========================================
+        // STATE MANAGEMENT
+        // ==========================================
+        let appState = {
+            coins: [],
+            siteConfig: {
+                title: 'MemeBarn',
+                logo: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300F2FE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 22 22 22'/%3E%3C/svg%3E",
+                twitter: '#'
+            },
+            currentCoinCA: null
+        };
+
+        // ==========================================
+        // 2. REAL-TIME SYNC & FALLBACK SYSTEM
+        // ==========================================
+        function initDataSync() {
+            // Site Config Listener
+            try {
+                db.collection('site_config').doc('main').onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        appState.siteConfig = { ...appState.siteConfig, ...data };
+                        localStorage.setItem('mb_siteConfig', JSON.stringify(appState.siteConfig));
+                        updateSiteUI();
+                    }
+                }, error => {
+                    console.error("Firebase Config Error, using fallback:", error);
+                    loadFallbackConfig();
+                });
+            } catch (e) {
+                loadFallbackConfig();
+            }
+
+            // Meme Coins Listener
+            try {
+                db.collection('meme_coins').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                    appState.coins = [];
+                    snapshot.forEach(doc => {
+                        appState.coins.push({ id: doc.id, ...doc.data() });
+                    });
+                    localStorage.setItem('mb_coins', JSON.stringify(appState.coins));
+                    renderCoinGrid();
+                }, error => {
+                    console.error("Firebase Coins Error, using fallback:", error);
+                    loadFallbackCoins();
+                });
+            } catch (e) {
+                loadFallbackCoins();
+            }
+        }
+
+        function loadFallbackConfig() {
+            const cached = localStorage.getItem('mb_siteConfig');
+            if (cached) {
+                appState.siteConfig = JSON.parse(cached);
+                updateSiteUI();
+            }
+        }
+
+        function loadFallbackCoins() {
+            const cached = localStorage.getItem('mb_coins');
+            if (cached) {
+                appState.coins = JSON.parse(cached);
+                renderCoinGrid();
+            }
+        }
+
+        // ==========================================
+        // 3. UI RENDERING LOGIC
+        // ==========================================
+        function updateSiteUI() {
+            document.title = `${appState.siteConfig.title} - Home of Viral Memes`;
+            document.getElementById('nav-title').textContent = appState.siteConfig.title;
+            document.getElementById('hero-title').innerHTML = `Welcome to <span class="text-gradient">${appState.siteConfig.title}</span>`;
+            document.getElementById('nav-logo').src = appState.siteConfig.logo;
+            document.getElementById('nav-twitter').href = appState.siteConfig.twitter || '#';
+        }
+
+        function renderCoinGrid() {
+            const grid = document.getElementById('coin-grid');
+            const loading = document.getElementById('grid-loading');
+            const empty = document.getElementById('grid-empty');
+            
+            document.getElementById('stat-coins').textContent = appState.coins.length;
+            loading.classList.add('hidden');
+
+            if (appState.coins.length === 0) {
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
+                grid.classList.add('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            grid.classList.remove('hidden');
+            grid.innerHTML = '';
+
+            appState.coins.forEach(coin => {
+                // STRICT RULE: ONLY 4 ELEMENTS + 1 BUTTON IN HOMEPAGE CARD
+                const card = document.createElement('div');
+                card.className = 'glass-panel rounded-2xl p-6 flex flex-col hover-glow transition-all duration-300 transform hover:-translate-y-1';
+                
+                // Element 1 & 2 & 3: Logo, Name/Ticker, Holders (Cached/Stored)
+                const headerHtml = `
+                    <div class="flex items-start gap-4 mb-4">
+                        <img src="${coin.logo}" alt="${coin.name}" class="w-16 h-16 rounded-full object-contain bg-black/50 p-1 border border-white/10 flex-shrink-0">
+                        <div class="flex-grow">
+                            <h3 class="text-xl font-bold text-white leading-tight mb-1">${coin.name}</h3>
+                            <div class="flex items-center gap-2 text-xs font-mono text-gray-400">
+                                <span class="text-neonCyan">$${coin.ticker}</span>
+                                <span>•</span>
+                                <span>👥 ${coin.cachedHolders || 'N/A'} Holders</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Element 4: Description
+                const descHtml = `
+                    <p class="text-sm text-gray-400 line-clamp-3 mb-6 flex-grow">
+                        ${coin.description}
+                    </p>
+                `;
+
+                // Button
+                const btnHtml = `
+                    <button onclick="openDetailModal('${coin.ca}')" class="w-full bg-white/5 hover:bg-white/10 border border-white/10 text-white py-3 rounded-xl font-medium transition-colors text-sm flex items-center justify-center gap-2 group">
+                        Lihat Detail & Data Live <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                `;
+
+                card.innerHTML = headerHtml + descHtml + btnHtml;
+                grid.appendChild(card);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // ==========================================
+        // 4. API INTEGRATION & MODAL LOGIC
+        // ==========================================
+        const SOLSCAN_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3OTAwODMwNTQxODEsImVtYWlsIjoic2V0b2FqaW51Z3JvaG9iaXNuaXNAZ21haWwuY29tIiwiYWN0aW9uIjoidG9rZW4tYXBpIiwiYXBpVmVyc2lvbiI6InYyIiwiaWF0IjoxNzkwMDgzMDU0fQ.2tj1eEkXAm_MVvTWZpWjnfiBUx6Wk6LDSqWwG81W9c0';
+
+        function formatCurrency(val) {
+            if (!val) return '$0.00';
+            const num = parseFloat(val);
+            if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return '$' + (num / 1e3).toFixed(2) + 'K';
+            if (num < 0.01) return '$' + num.toFixed(6);
+            return '$' + num.toFixed(2);
+        }
+
+        function formatNumber(val) {
+            if (!val) return '0';
+            return parseInt(val).toLocaleString();
+        }
+
+        async function openDetailModal(ca) {
+            const coin = appState.coins.find(c => c.ca === ca);
+            if (!coin) return;
+
+            appState.currentCoinCA = ca;
+            
+            // Populate basic modal UI
+            document.getElementById('modal-logo').src = coin.logo;
+            document.getElementById('modal-name').textContent = coin.name;
+            document.getElementById('modal-ticker').textContent = `$${coin.ticker}`;
+            document.getElementById('modal-ca').textContent = ca;
+            
+            // Links
+            const dexLink = coin.buyLink || `https://raydium.io/swap/?outputCurrency=${ca}`;
+            document.getElementById('modal-buy-btn').href = dexLink;
+            document.getElementById('modal-chart-btn').href = `https://dexscreener.com/solana/${ca}`;
+            
+            const twBtn = document.getElementById('modal-tw-btn');
+            if (coin.twitter) {
+                twBtn.href = coin.twitter;
+                twBtn.classList.remove('hidden');
+                twBtn.classList.add('flex');
+            } else {
+                twBtn.classList.add('hidden');
+                twBtn.classList.remove('flex');
+            }
+
+            // Reset Stats
+            document.getElementById('modal-mcap').textContent = 'Loading...';
+            document.getElementById('modal-price').textContent = 'Loading...';
+            document.getElementById('modal-vol').textContent = 'Loading...';
+            document.getElementById('modal-holders').innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Fetching...';
+            lucide.createIcons();
+
+            // Show Modal
+            document.getElementById('detail-modal').classList.remove('hidden');
+
+            // Fetch DexScreener
+            try {
+                const dexRes = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${ca}`);
+                const dexData = await dexRes.json();
+                if (dexData.pairs && dexData.pairs.length > 0) {
+                    const pair = dexData.pairs[0];
+                    document.getElementById('modal-mcap').textContent = formatCurrency(pair.fdv || 0);
+                    document.getElementById('modal-price').textContent = formatCurrency(pair.priceUsd || 0);
+                    document.getElementById('modal-vol').textContent = formatCurrency(pair.volume?.h24 || 0);
+                } else {
+                    document.getElementById('modal-mcap').textContent = 'N/A';
+                    document.getElementById('modal-price').textContent = 'N/A';
+                    document.getElementById('modal-vol').textContent = 'N/A';
+                }
+            } catch (e) {
+                console.error('DexScreener Error:', e);
+            }
+
+            // Fetch Solscan for Holders (ONLY CALLED ONCE ON OPEN OR MANUAL REFRESH)
+            fetchSolscanHolders(ca);
+        }
+
+        async function fetchSolscanHolders(ca) {
+            const holderEl = document.getElementById('modal-holders');
+            holderEl.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Fetching...';
+            lucide.createIcons();
+            try {
+                const res = await fetch(`https://pro-api.solscan.io/v2.0/token/meta?address=${ca}`, {
+                    headers: { 'token': SOLSCAN_API_KEY }
+                });
+                const data = await res.json();
+                if (data.success && data.data && data.data.holder) {
+                    holderEl.textContent = formatNumber(data.data.holder);
+                } else {
+                    holderEl.textContent = 'API Limit / N/A';
+                }
+            } catch (e) {
+                console.error('Solscan Error:', e);
+                holderEl.textContent = 'Data Unavailable';
+            }
+        }
+
+        function refreshHolders() {
+            if (appState.currentCoinCA) {
+                fetchSolscanHolders(appState.currentCoinCA);
+                showToast('Refreshing holders data...', 'info');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+            appState.currentCoinCA = null;
+        }
+
+        function copyCA() {
+            if (!appState.currentCoinCA) return;
+            navigator.clipboard.writeText(appState.currentCoinCA).then(() => {
+                const caEl = document.getElementById('modal-ca');
+                const origText = caEl.textContent;
+                caEl.textContent = "Copied! ✓";
+                caEl.classList.replace('text-neonCyan', 'text-emeraldGreen');
+                setTimeout(() => {
+                    caEl.textContent = origText;
+                    caEl.classList.replace('text-emeraldGreen', 'text-neonCyan');
+                }, 1500);
+                showToast('Contract Address Copied!', 'success');
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-emeraldGreen/20 border-emeraldGreen/50 text-emeraldGreen' : 
+                            type === 'error' ? 'bg-red-500/20 border-red-500/50 text-red-400' : 
+                            'bg-neonCyan/20 border-neonCyan/50 text-neonCyan';
+            
+            toast.className = `px-4 py-2 rounded-lg border backdrop-blur-md text-sm font-medium animate-[fadeIn_0.3s_ease-out] shadow-lg ${bgColor}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // ==========================================
+        // 5. SECRET ADMIN PORTAL (EASTER EGG)
+        // ==========================================
+        
+        // --- Triggers ---
+        // 1. Hotkey Trigger (Ctrl + Shift + A)
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'a') {
+                e.preventDefault();
+                injectAdminLogin();
+            }
+        });
+
+        // 2. Mobile Touch Trigger (25 taps in 3s)
+        let tapCount = 0;
+        let tapTimer = null;
+        document.addEventListener('touchstart', () => {
+            tapCount++;
+            if (!tapTimer) {
+                tapTimer = setTimeout(() => {
+                    tapCount = 0;
+                    tapTimer = null;
+                }, 3000);
+            }
+            if (tapCount >= 25) {
+                tapCount = 0;
+                clearTimeout(tapTimer);
+                tapTimer = null;
+                injectAdminLogin();
+            }
+        }, { passive: true });
+
+        // --- Cryptography (SHA-256) ---
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        
+        const EXPECTED_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'; // 'admin123'
+
+        // --- Dynamic DOM Injection (Strict Rule) ---
+        function injectAdminLogin() {
+            const root = document.getElementById('admin-root');
+            root.innerHTML = `
+                <div id="admin-login-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-[fadeIn_0.2s_ease-out]">
+                    <div class="glass-panel w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-red-500/30 text-center relative">
+                        <button onclick="document.getElementById('admin-root').innerHTML=''" class="absolute top-4 right-4 text-gray-500 hover:text-white">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                        <i data-lucide="lock" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+                        <h2 class="text-xl font-bold text-white mb-2">Restricted Area</h2>
+                        <p class="text-xs text-gray-400 mb-6">Enter protocol sequence to proceed.</p>
+                        <input type="password" id="admin-pwd" class="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-white mb-4 focus:outline-none focus:border-red-500/50 text-center" placeholder="Password">
+                        <button onclick="verifyAdmin()" class="w-full bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/50 font-bold py-3 px-4 rounded-xl transition-colors">
+                            Authenticate
+                        </button>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            document.getElementById('admin-pwd').focus();
+            
+            // Allow Enter key
+            document.getElementById('admin-pwd').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') verifyAdmin();
+            });
+        }
+
+        async function verifyAdmin() {
+            const pwdInput = document.getElementById('admin-pwd').value;
+            const hash = await sha256(pwdInput);
+            if (hash === EXPECTED_HASH) {
+                showToast('Authentication Successful', 'success');
+                injectAdminDashboard();
+            } else {
+                showToast('Access Denied', 'error');
+                document.getElementById('admin-pwd').value = '';
+                document.getElementById('admin-pwd').classList.add('animate-pulse');
+                setTimeout(() => document.getElementById('admin-pwd').classList.remove('animate-pulse'), 500);
+            }
+        }
+
+        function injectAdminDashboard() {
+            const root = document.getElementById('admin-root');
+            root.innerHTML = `
+                <div id="admin-dashboard-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/95 backdrop-blur-lg overflow-y-auto">
+                    <div class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl border border-electricPurple/30 relative flex flex-col max-h-full">
+                        
+                        <!-- Header -->
+                        <div class="p-6 border-b border-white/10 flex justify-between items-center sticky top-0 bg-obsidian/90 backdrop-blur-md z-10 rounded-t-2xl">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="terminal" class="w-6 h-6 text-electricPurple"></i>
+                                <h2 class="text-xl font-bold text-white">Command Center (Admin)</h2>
+                            </div>
+                            <button onclick="document.getElementById('admin-root').innerHTML=''" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 p-2 rounded-lg transition-colors border border-red-500/30">
+                                <i data-lucide="log-out" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <!-- Content Scrollable -->
+                        <div class="p-6 overflow-y-auto space-y-8 custom-scrollbar">
+                            
+                            <!-- MODUL 1 & 2: Site & Social Config -->
+                            <div class="bg-black/40 border border-white/5 rounded-xl p-5">
+                                <h3 class="text-lg font-semibold text-neonCyan mb-4 flex items-center gap-2">
+                                    <i data-lucide="settings" class="w-4 h-4"></i> Site & Social Customization
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Site Title</label>
+                                        <input type="text" id="cfg-title" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm" value="${appState.siteConfig.title}">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Dev Twitter URL</label>
+                                        <input type="text" id="cfg-tw" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm" value="${appState.siteConfig.twitter}">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs text-gray-400 mb-1">Upload New Logo (Auto Compressed)</label>
+                                        <div class="flex items-center gap-3">
+                                            <img id="cfg-logo-preview" src="${appState.siteConfig.logo}" class="w-10 h-10 rounded bg-white/5 object-contain">
+                                            <input type="file" id="cfg-logo" accept="image/*" class="w-full bg-black/50 border border-white/10 rounded-lg p-1.5 text-sm text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" onchange="handleLogoUpload(event)">
+                                        </div>
+                                    </div>
+                                    <div class="md:col-span-2 flex justify-end mt-2">
+                                        <button onclick="saveSiteConfig()" class="bg-emeraldGreen/20 hover:bg-emeraldGreen/40 text-emeraldGreen border border-emeraldGreen/30 py-2 px-4 rounded-lg text-sm transition-colors flex items-center gap-2">
+                                            <i data-lucide="save" class="w-4 h-4"></i> Save Configuration
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MODUL 3: Add New Coin -->
+                            <div class="bg-black/40 border border-white/5 rounded-xl p-5">
+                                <h3 class="text-lg font-semibold text-electricPurple mb-4 flex items-center gap-2">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Deploy New Coin Listing
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Coin Name *</label>
+                                        <input type="text" id="add-name" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm" placeholder="e.g. Barn Token">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Ticker *</label>
+                                        <input type="text" id="add-ticker" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm" placeholder="e.g. BARN">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs text-gray-400 mb-1">Contract Address (Solana) *</label>
+                                        <input type="text" id="add-ca" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm font-mono" placeholder="Base58 CA string...">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Initial Holders (For Homepage Cache)</label>
+                                        <input type="text" id="add-holders" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm" placeholder="e.g. 1,250">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Coin Logo Upload</label>
+                                        <div class="flex items-center gap-2">
+                                            <img id="add-logo-preview" src="" class="w-8 h-8 rounded bg-white/5 object-contain hidden">
+                                            <input type="file" id="add-logo" accept="image/*" class="w-full bg-black/50 border border-white/10 rounded-lg p-1 text-sm text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-white/10 file:text-white" onchange="handleAddLogoUpload(event)">
+                                        </div>
+                                        <input type="hidden" id="add-logo-b64">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="block text-xs text-gray-400 mb-1">Short Description *</label>
+                                        <textarea id="add-desc" rows="2" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm resize-none" placeholder="Catchy description for homepage card..."></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Custom Buy Link (Optional)</label>
+                                        <input type="text" id="add-buy" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm" placeholder="Leave empty for Raydium default">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Coin Twitter (Optional)</label>
+                                        <input type="text" id="add-tw" class="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-white text-sm" placeholder="https://x.com/...">
+                                    </div>
+                                    <div class="md:col-span-2 flex justify-end mt-2">
+                                        <button onclick="addNewCoin()" class="bg-neonCyan/20 hover:bg-neonCyan/40 text-neonCyan border border-neonCyan/30 py-2 px-4 rounded-lg text-sm transition-colors flex items-center gap-2">
+                                            <i data-lucide="rocket" class="w-4 h-4"></i> Launch Coin
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MODUL 4: Manage Existing Coins -->
+                            <div class="bg-black/40 border border-white/5 rounded-xl p-5">
+                                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                    <i data-lucide="database" class="w-4 h-4"></i> Manage Database
+                                </h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b border-white/10 text-xs text-gray-400 uppercase tracking-wider">
+                                                <th class="py-3 px-2">Coin</th>
+                                                <th class="py-3 px-2">Ticker</th>
+                                                <th class="py-3 px-2">CA</th>
+                                                <th class="py-3 px-2 text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-coin-list">
+                                            <!-- List injected here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+            populateAdminCoinList();
+        }
+
+        // --- Admin Image Compression (Canvas) ---
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Max width/height to keep size under 100kb
+                    const MAX_DIMENSION = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height && width > MAX_DIMENSION) {
+                        height *= MAX_DIMENSION / width;
+                        width = MAX_DIMENSION;
+                    } else if (height > MAX_DIMENSION) {
+                        width *= MAX_DIMENSION / height;
+                        height = MAX_DIMENSION;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Compress to WebP or JPEG
+                    const dataUrl = canvas.toDataURL('image/webp', 0.6);
+                    callback(dataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Admin Form Handlers ---
+        let pendingSiteLogo = null;
+        
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressImage(file, (b64) => {
+                    pendingSiteLogo = b64;
+                    document.getElementById('cfg-logo-preview').src = b64;
+                });
+            }
+        }
+
+        function handleAddLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressImage(file, (b64) => {
+                    document.getElementById('add-logo-b64').value = b64;
+                    const preview = document.getElementById('add-logo-preview');
+                    preview.src = b64;
+                    preview.classList.remove('hidden');
+                });
+            }
+        }
+
+        async function saveSiteConfig() {
+            const title = document.getElementById('cfg-title').value;
+            const twitter = document.getElementById('cfg-tw').value;
+            
+            const updateData = { title, twitter };
+            if (pendingSiteLogo) updateData.logo = pendingSiteLogo;
+
+            try {
+                await db.collection('site_config').doc('main').set(updateData, { merge: true });
+                showToast('Site configuration updated globally.', 'success');
+            } catch (error) {
+                console.error(error);
+                showToast('Failed to update config.', 'error');
+            }
+        }
+
+        async function addNewCoin() {
+            const name = document.getElementById('add-name').value;
+            const ticker = document.getElementById('add-ticker').value;
+            const ca = document.getElementById('add-ca').value;
+            const desc = document.getElementById('add-desc').value;
+            const cachedHolders = document.getElementById('add-holders').value || '0';
+            const logo = document.getElementById('add-logo-b64').value;
+            const buyLink = document.getElementById('add-buy').value;
+            const twitter = document.getElementById('add-tw').value;
+
+            if (!name || !ticker || !ca || !desc || !logo) {
+                showToast('Please fill all required fields and upload a logo.', 'error');
+                return;
+            }
+
+            try {
+                await db.collection('meme_coins').add({
+                    name, ticker, ca, description: desc, cachedHolders, 
+                    logo, buyLink, twitter,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('New coin deployed to database!', 'success');
+                
+                // Reset form
+                document.getElementById('add-name').value = '';
+                document.getElementById('add-ticker').value = '';
+                document.getElementById('add-ca').value = '';
+                document.getElementById('add-desc').value = '';
+                document.getElementById('add-holders').value = '';
+                document.getElementById('add-buy').value = '';
+                document.getElementById('add-tw').value = '';
+                document.getElementById('add-logo').value = '';
+                document.getElementById('add-logo-b64').value = '';
+                document.getElementById('add-logo-preview').classList.add('hidden');
+                
+                populateAdminCoinList();
+            } catch (error) {
+                console.error(error);
+                showToast('Failed to add coin.', 'error');
+            }
+        }
+
+        function populateAdminCoinList() {
+            const tbody = document.getElementById('admin-coin-list');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            appState.coins.forEach(coin => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/5 hover:bg-white/5 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3 px-2 flex items-center gap-2">
+                        <img src="${coin.logo}" class="w-6 h-6 rounded-full bg-white/10">
+                        <span class="text-sm text-white">${coin.name}</span>
+                    </td>
+                    <td class="py-3 px-2 text-sm text-gray-400">$${coin.ticker}</td>
+                    <td class="py-3 px-2 text-xs font-mono text-gray-500 truncate max-w-[100px]">${coin.ca}</td>
+                    <td class="py-3 px-2 text-right">
+                        <button onclick="deleteCoin('${coin.id}')" class="text-red-400 hover:text-red-300 p-1 bg-red-500/10 rounded transition-colors" title="Delete">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        async function deleteCoin(id) {
+            if(confirm('Are you sure you want to delete this coin? This action cannot be undone.')) {
+                try {
+                    await db.collection('meme_coins').doc(id).delete();
+                    showToast('Coin deleted successfully.', 'success');
+                    // Give a slight delay for realtime sync to catch up, then re-render list
+                    setTimeout(() => populateAdminCoinList(), 500);
+                } catch (error) {
+                    console.error(error);
+                    showToast('Failed to delete coin.', 'error');
+                }
+            }
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            initDataSync();
+        });
+
+    </script>
 </body>
-</html>
+    </html>
