@@ -1,1576 +1,421 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07080B">
 
-  <title>MemeBarn — Home of Viral Memes & Verified Ecosystem</title>
-  <meta name="description" content="MemeBarn — Home of Viral Memes & Verified Ecosystem.">
-  <meta name="theme-color" content="#07080B">
+    <title>MemeBarn</title>
 
-  <!-- Firebase v10 Compat CDN -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <meta
+        name="description"
+        content="MemeBarn - Home of Viral Memes & Verified Ecosystem"
+    >
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            outfit: ['Outfit', 'sans-serif'],
-            space: ['Space Grotesk', 'sans-serif']
-          },
-          colors: {
-            obsidian: '#07080B',
-            panel: '#0F1117',
-            cyan: '#00F2FE',
-            purple: '#7F00FF',
-            emerald: '#10B981'
-          },
-          boxShadow: {
-            neon: '0 0 30px rgba(0,242,254,.12)',
-            purple: '0 0 30px rgba(127,0,255,.12)'
-          }
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: "#07080B",
+                        panel: "#0F1117",
+                        cyan: "#00F2FE",
+                        purple: "#7F00FF",
+                        emerald: "#10B981"
+                    },
+                    fontFamily: {
+                        outfit: ["Outfit", "sans-serif"],
+                        space: ["Space Grotesk", "sans-serif"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Firebase v10 Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
         }
-      }
-    };
-  </script>
 
-  <style>
-    :root {
-      --bg: #07080B;
-      --panel: #0F1117;
-      --cyan: #00F2FE;
-      --purple: #7F00FF;
-      --green: #10B981;
-      --muted: #8c93a3;
-      --border: rgba(255,255,255,.08);
-    }
+        html {
+            scroll-behavior: smooth;
+        }
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+        body {
+            margin: 0;
+            background:
+                radial-gradient(
+                    circle at 20% 0%,
+                    rgba(127, 0, 255, 0.10),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 90% 10%,
+                    rgba(0, 242, 254, 0.08),
+                    transparent 30%
+                ),
+                #07080B;
+            color: #fff;
+            font-family: "Outfit", sans-serif;
+            min-height: 100vh;
+        }
 
-    html {
-      scroll-behavior: smooth;
-      background: var(--bg);
-    }
+        .glass {
+            background: rgba(15, 17, 23, 0.75);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 15% 0%, rgba(0,242,254,.07), transparent 30%),
-        radial-gradient(circle at 85% 5%, rgba(127,0,255,.08), transparent 30%),
-        var(--bg);
-      color: #fff;
-      font-family: 'Outfit', sans-serif;
-      overflow-x: hidden;
-    }
+        .gradient-text {
+            background: linear-gradient(
+                90deg,
+                #00F2FE,
+                #7F00FF
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
 
-    body.modal-open {
-      overflow: hidden;
-    }
+        .gradient-border {
+            position: relative;
+            border-radius: 20px;
+            background:
+                linear-gradient(#0F1117, #0F1117) padding-box,
+                linear-gradient(
+                    135deg,
+                    rgba(0,242,254,.5),
+                    rgba(127,0,255,.5)
+                ) border-box;
+            border: 1px solid transparent;
+        }
 
-    .glass {
-      background: rgba(15,17,23,.75);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border);
-    }
+        .coin-card {
+            transition:
+                transform .25s ease,
+                border-color .25s ease,
+                box-shadow .25s ease;
+        }
 
-    .gradient-text {
-      background: linear-gradient(100deg, #fff 10%, var(--cyan) 50%, #a970ff 90%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
+        .coin-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 242, 254, .35);
+            box-shadow:
+                0 20px 50px rgba(0,0,0,.35),
+                0 0 30px rgba(0,242,254,.05);
+        }
 
-    .gradient-border {
-      position: relative;
-    }
+        .coin-logo {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+        }
 
-    .gradient-border::before {
-      content: "";
-      position: absolute;
-      inset: -1px;
-      z-index: -1;
-      border-radius: inherit;
-      background: linear-gradient(135deg, rgba(0,242,254,.55), rgba(127,0,255,.35), transparent 70%);
-      opacity: .5;
-    }
+        .modal-scroll::-webkit-scrollbar {
+            width: 7px;
+        }
 
-    .coin-card {
-      transition:
-        transform .25s ease,
-        border-color .25s ease,
-        box-shadow .25s ease;
-    }
+        .modal-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
 
-    .coin-card:hover {
-      transform: translateY(-5px);
-      border-color: rgba(0,242,254,.3);
-      box-shadow: 0 18px 50px rgba(0,0,0,.28), 0 0 35px rgba(0,242,254,.07);
-    }
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: #272b35;
+            border-radius: 10px;
+        }
 
-    .logo-frame {
-      background:
-        radial-gradient(circle at 30% 20%, rgba(0,242,254,.12), transparent 40%),
-        radial-gradient(circle at 80% 80%, rgba(127,0,255,.13), transparent 45%),
-        #090b10;
-    }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #10B981;
+            box-shadow: 0 0 12px #10B981;
+        }
 
-    .grid-bg {
-      background-image:
-        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,.15);
+            border-top-color: #00F2FE;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
 
-    .modal-backdrop {
-      background: rgba(0,0,0,.72);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
-    .custom-scroll::-webkit-scrollbar {
-      width: 7px;
-    }
+        .fade-in {
+            animation: fadeIn .25s ease;
+        }
 
-    .custom-scroll::-webkit-scrollbar-track {
-      background: transparent;
-    }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,.12);
-      border-radius: 99px;
-    }
+        .admin-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid #292e3a;
+            background: #07080B;
+            color: white;
+            outline: none;
+        }
 
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255,255,255,.15);
-      border-top-color: var(--cyan);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
+        .admin-input:focus {
+            border-color: #00F2FE;
+            box-shadow: 0 0 0 2px rgba(0,242,254,.08);
+        }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+        .admin-label {
+            display: block;
+            font-size: 13px;
+            color: #a1a1aa;
+            margin-bottom: 7px;
+        }
 
-    .pulse-dot {
-      animation: pulseDot 1.8s infinite;
-    }
+        .hidden-important {
+            display: none !important;
+        }
 
-    @keyframes pulseDot {
-      0%,100% {
-        box-shadow: 0 0 0 0 rgba(16,185,129,.5);
-      }
-      50% {
-        box-shadow: 0 0 0 7px rgba(16,185,129,0);
-      }
-    }
-
-    .fade-in {
-      animation: fadeIn .3s ease both;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .admin-panel {
-      animation: adminIn .25s ease both;
-    }
-
-    @keyframes adminIn {
-      from {
-        opacity: 0;
-        transform: scale(.97) translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-
-    input,
-    textarea,
-    select {
-      outline: none;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      border-color: rgba(0,242,254,.55) !important;
-      box-shadow: 0 0 0 3px rgba(0,242,254,.06);
-    }
-
-    .toast {
-      animation: toastIn .25s ease both;
-    }
-
-    @keyframes toastIn {
-      from {
-        opacity: 0;
-        transform: translate(-50%, 15px);
-      }
-      to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-      }
-    }
-
-    .stat-value {
-      font-family: 'Space Grotesk', sans-serif;
-    }
-
-    .hidden-force {
-      display: none !important;
-    }
-
-    @media (max-width: 640px) {
-      .hero-title {
-        font-size: 2.7rem;
-        line-height: 1;
-      }
-    }
-  </style>
+        @media (max-width: 640px) {
+            .coin-logo {
+                width: 90px;
+                height: 90px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-  <!-- =========================================================
-       PUBLIC NAVBAR
-       ========================================================= -->
-  <header class="fixed top-0 left-0 right-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-4">
-      <nav class="glass rounded-2xl h-16 px-4 sm:px-6 flex items-center justify-between shadow-neon">
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
 
-        <a href="#" class="flex items-center gap-3 min-w-0" aria-label="MemeBarn Home">
-          <div id="navLogo"
-               class="w-10 h-10 rounded-xl logo-frame border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
-            <span class="text-xl">🌾</span>
-          </div>
+<header class="sticky top-0 z-40 border-b border-white/5 bg-[#07080B]/85 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="h-20 flex items-center justify-between">
 
-          <div class="min-w-0">
-            <div id="navBrand"
-                 class="font-space font-bold text-base sm:text-lg truncate">
-              MemeBarn
+            <div class="flex items-center gap-3 min-w-0">
+                <div
+                    id="navbarLogo"
+                    class="w-11 h-11 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center shrink-0"
+                >
+                    <div class="text-xl font-bold gradient-text">M</div>
+                </div>
+
+                <div class="min-w-0">
+                    <div
+                        id="navbarTitle"
+                        class="font-bold text-lg truncate"
+                    >
+                        MemeBarn
+                    </div>
+
+                    <div class="text-xs text-zinc-500">
+                        Home of Viral Memes
+                    </div>
+                </div>
             </div>
-            <div class="text-[10px] sm:text-xs text-gray-500 truncate">
-              Home of Viral Memes
-            </div>
-          </div>
-        </a>
 
-        <div class="flex items-center gap-2">
-          <a id="mainTwitterLink"
-             href="https://x.com/"
-             target="_blank"
-             rel="noopener noreferrer"
-             class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition text-sm">
-            <i data-lucide="twitter" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Official X</span>
-          </a>
+            <a
+                id="mainTwitterLink"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 hover:bg-white/5 transition text-sm"
+            >
+                <i data-lucide="twitter" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Official X</span>
+            </a>
+
         </div>
-      </nav>
     </div>
-  </header>
+</header>
 
 
-  <!-- =========================================================
-       HERO
-       ========================================================= -->
-  <main class="pt-28">
+<!-- =========================================================
+     HERO
+========================================================= -->
 
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none"></div>
+<main>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-24 relative">
+<section class="relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-12">
 
         <div class="max-w-4xl mx-auto text-center">
 
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/5 text-emerald-300 text-xs font-medium mb-7">
-            <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
-            100% Transparency & Community Driven
-          </div>
-
-          <h1 id="heroTitle"
-              class="hero-title font-space text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight">
-            <span class="gradient-text">MemeBarn</span>
-          </h1>
-
-          <p class="mt-6 text-gray-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-            Home of Viral Memes & Verified Ecosystem
-          </p>
-
-          <div class="mt-10 flex justify-center">
-            <a href="#coins"
-               class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-black font-semibold hover:bg-cyan transition">
-              Explore Meme Coins
-              <i data-lucide="arrow-down" class="w-4 h-4"></i>
-            </a>
-          </div>
-        </div>
-
-
-        <!-- Stats -->
-        <div class="mt-14 max-w-4xl mx-auto">
-          <div class="glass rounded-2xl p-1 shadow-neon">
-            <div class="grid grid-cols-3 divide-x divide-white/10">
-
-              <div class="p-4 sm:p-6 text-center">
-                <div id="totalCoins"
-                     class="stat-value text-xl sm:text-2xl md:text-3xl font-bold">
-                  0
-                </div>
-                <div class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mt-1">
-                  Released Coins
-                </div>
-              </div>
-
-              <div class="p-4 sm:p-6 text-center">
-                <div class="stat-value text-xl sm:text-2xl md:text-3xl font-bold">
-                  Solana
-                </div>
-                <div class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mt-1">
-                  Network
-                </div>
-              </div>
-
-              <div class="p-4 sm:p-6 text-center">
-                <div class="flex items-center justify-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
-                  <span class="stat-value text-xl sm:text-2xl md:text-3xl font-bold">
-                    Active
-                  </span>
-                </div>
-                <div class="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mt-1">
-                  Dev Status
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- =========================================================
-         COINS
-         ========================================================= -->
-    <section id="coins" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-
-      <div class="flex items-end justify-between gap-4 mb-8">
-        <div>
-          <div class="text-xs text-cyan uppercase tracking-[.2em] font-semibold mb-2">
-            The Barn
-          </div>
-          <h2 class="font-space text-3xl sm:text-4xl font-bold">
-            Meme Coins
-          </h2>
-        </div>
-
-        <div id="syncStatus"
-             class="flex items-center gap-2 text-xs text-gray-500">
-          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          Live Sync
-        </div>
-      </div>
-
-
-      <!-- Loading -->
-      <div id="coinsLoading"
-           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-        <div class="glass rounded-2xl h-80 animate-pulse"></div>
-        <div class="glass rounded-2xl h-80 animate-pulse hidden md:block"></div>
-        <div class="glass rounded-2xl h-80 animate-pulse hidden lg:block"></div>
-
-      </div>
-
-
-      <!-- Empty -->
-      <div id="coinsEmpty"
-           class="hidden glass rounded-2xl py-20 px-6 text-center">
-
-        <div class="w-16 h-16 mx-auto rounded-2xl logo-frame border border-white/10 flex items-center justify-center text-3xl mb-5">
-          🌾
-        </div>
-
-        <h3 class="font-space text-xl font-bold">
-          The Barn is Empty
-        </h3>
-
-        <p class="text-gray-500 mt-2 text-sm">
-          Belum ada meme coin yang dirilis.
-        </p>
-      </div>
-
-
-      <!-- Coin Grid -->
-      <div id="coinsGrid"
-           class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      </div>
-
-    </section>
-
-
-    <!-- =========================================================
-         FOOTER
-         ========================================================= -->
-    <footer class="border-t border-white/5 mt-10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-5">
-
-          <div class="flex items-center gap-3">
-            <div id="footerLogo"
-                 class="w-9 h-9 rounded-xl logo-frame border border-white/10 flex items-center justify-center overflow-hidden">
-              <span>🌾</span>
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 text-emerald-400 text-sm mb-7"
+            >
+                <span class="pulse-dot"></span>
+                100% Transparency & Community Driven
             </div>
 
-            <div>
-              <div id="footerBrand" class="font-space font-bold">
-                MemeBarn
-              </div>
-              <div class="text-xs text-gray-600">
-                Home of Viral Memes
-              </div>
-            </div>
-          </div>
-
-          <div class="text-xs text-gray-600 text-center sm:text-right">
-            Built on Solana · Community Driven
-          </div>
-
-        </div>
-
-      </div>
-    </footer>
-
-  </main>
-
-
-  <!-- =========================================================
-       COIN DETAIL MODAL
-       ========================================================= -->
-  <div id="coinModal"
-       class="fixed inset-0 z-50 hidden modal-backdrop p-3 sm:p-6">
-
-    <div class="w-full max-w-3xl max-h-[94vh] overflow-y-auto custom-scroll mx-auto mt-2 sm:mt-8">
-
-      <div class="glass rounded-3xl overflow-hidden shadow-2xl">
-
-        <!-- Modal Header -->
-        <div class="p-5 sm:p-6 border-b border-white/5 flex items-start justify-between gap-4">
-
-          <div class="flex items-center gap-4 min-w-0">
-
-            <div id="detailLogo"
-                 class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl logo-frame border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
-              <span class="text-3xl">🌾</span>
-            </div>
-
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-
-                <h2 id="detailName"
-                    class="font-space font-bold text-xl sm:text-2xl truncate">
-                  Meme Coin
-                </h2>
-
-                <span id="detailChain"
-                      class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase bg-purple-500/10 text-purple-300 border border-purple-400/20">
-                  Solana
-                </span>
-
-              </div>
-
-              <div id="detailTicker"
-                   class="text-cyan font-semibold mt-1">
-                $TOKEN
-              </div>
-            </div>
-
-          </div>
-
-          <button id="closeCoinModal"
-                  class="w-10 h-10 rounded-xl border border-white/10 hover:bg-white/5 flex items-center justify-center shrink-0"
-                  aria-label="Close">
-            <i data-lucide="x" class="w-5 h-5"></i>
-          </button>
-
-        </div>
-
-
-        <div class="p-5 sm:p-6 space-y-5">
-
-          <!-- Contract -->
-          <div>
-            <div class="text-[11px] text-gray-500 uppercase tracking-wider mb-2">
-              Contract Address
-            </div>
-
-            <button id="copyCaButton"
-                    class="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-black/25 border border-white/10 hover:border-cyan/30 transition text-left">
-
-              <span id="detailCA"
-                    class="font-mono text-xs sm:text-sm text-gray-300 truncate">
-                —
-              </span>
-
-              <span id="copyCaLabel"
-                    class="text-xs text-cyan shrink-0">
-                Copy
-              </span>
-
-            </button>
-          </div>
-
-
-          <!-- Financial Stats -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-
-            <div class="rounded-2xl bg-black/20 border border-white/5 p-4">
-              <div class="text-[10px] text-gray-500 uppercase tracking-wider">
-                Market Cap
-              </div>
-              <div id="detailMcap"
-                   class="font-space font-bold mt-2 text-lg">
-                Loading...
-              </div>
-              <div class="text-[10px] text-gray-600 mt-1">
-                FDV
-              </div>
-            </div>
-
-            <div class="rounded-2xl bg-black/20 border border-white/5 p-4">
-              <div class="text-[10px] text-gray-500 uppercase tracking-wider">
-                Price
-              </div>
-              <div id="detailPrice"
-                   class="font-space font-bold mt-2 text-lg">
-                Loading...
-              </div>
-              <div class="text-[10px] text-gray-600 mt-1">
-                USD
-              </div>
-            </div>
-
-            <div class="rounded-2xl bg-black/20 border border-white/5 p-4">
-              <div class="text-[10px] text-gray-500 uppercase tracking-wider">
-                24h Volume
-              </div>
-              <div id="detailVolume"
-                   class="font-space font-bold mt-2 text-lg">
-                Loading...
-              </div>
-              <div class="text-[10px] text-gray-600 mt-1">
-                USD
-              </div>
-            </div>
-
-            <div class="rounded-2xl bg-black/20 border border-white/5 p-4">
-
-              <div class="flex items-center justify-between gap-2">
-                <div class="text-[10px] text-gray-500 uppercase tracking-wider">
-                  Holders
-                </div>
-
-                <button id="refreshHolders"
-                        class="w-7 h-7 rounded-lg hover:bg-white/5 flex items-center justify-center"
-                        title="Refresh holders">
-                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                </button>
-              </div>
-
-              <div id="detailHolders"
-                   class="font-space font-bold mt-2 text-lg">
-                Loading...
-              </div>
-
-              <div class="text-[10px] text-gray-600 mt-1">
-                Solscan
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <!-- API Source -->
-          <div id="apiStatus"
-               class="rounded-xl bg-black/20 border border-white/5 p-3 text-xs text-gray-500 flex items-center gap-2">
-            <span class="spinner"></span>
-            Mengambil data live...
-          </div>
-
-
-          <!-- CTA -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-            <a id="buyButton"
-               href="#"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-gradient-to-r from-cyan to-purple text-black font-bold hover:opacity-90 transition">
-              <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-              Beli Sekarang di DEX
-            </a>
-
-            <a id="dexButton"
-               href="#"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-white/10 hover:bg-white/5 font-semibold transition">
-              <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
-              DexScreener Live Chart
-            </a>
-
-          </div>
-
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-            <a id="twitterCoinButton"
-               href="#"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="hidden items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-sm font-semibold transition">
-              <i data-lucide="twitter" class="w-4 h-4"></i>
-              Twitter / X
-            </a>
-
-            <div class="rounded-xl border border-white/5 bg-black/15 px-4 py-3 text-xs text-gray-500 flex items-center gap-2">
-              <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot shrink-0"></span>
-              Data market berasal dari API publik.
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-
-  <!-- =========================================================
-       TOAST CONTAINER
-       ========================================================= -->
-  <div id="toastContainer"
-       class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] pointer-events-none">
-  </div>
-
-
-  <!-- =========================================================
-       JAVASCRIPT APPLICATION
-       ========================================================= -->
-  <script>
-    'use strict';
-
-    /* =========================================================
-       FIREBASE CONFIGURATION
-       ========================================================= */
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyDr3laJFOxFbpBtqPT6Shhr9T1IqGZ9g",
-      authDomain: "memebarn.firebaseapp.com",
-      projectId: "memebarn",
-      storageBucket: "memebarn.firebasestorage.app",
-      messagingSenderId: "186305606859",
-      appId: "1:186305606859:web:64cde4829cd775d420974e"
-    };
-
-
-    /* =========================================================
-       APPLICATION CONSTANTS
-       ========================================================= */
-
-    const APP = {
-      defaultSiteName: "MemeBarn",
-      defaultTwitter: "https://x.com/",
-      tagline: "Home of Viral Memes & Verified Ecosystem",
-
-      adminPasswordHash:
-        "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
-
-      solscanToken:
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3OTAwODMwNTQxODEsImVtYWlsIjoic2V0b2FqaW51Z3JvaG9iaXNuaXNAZ21haWwuY29tIiwiYWN0aW9uIjoidG9rZW4tYXBpIiwiYXBpVmVyc2lvbiI6InYyIiwiaWF0IjoxNzkwMDgzMDU0fQ.2tj1eEkXAm_MVvTWZpWjnfiBUx6Wk6LDSqWwG81W9c0",
-
-      localSiteKey: "memebarn_site_config_v1",
-      localCoinsKey: "memebarn_coins_v1",
-
-      dexBase:
-        "https://api.dexscreener.com/latest/dex/tokens/",
-
-      solscanBase:
-        "https://pro-api.solscan.io/v2.0/token/meta?address="
-    };
-
-
-    /* =========================================================
-       FIREBASE INITIALIZATION
-       ========================================================= */
-
-    let db = null;
-    let firebaseReady = false;
-    let firestoreUnsubCoins = null;
-    let firestoreUnsubSite = null;
-
-    try {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-
-      db = firebase.firestore();
-      firebaseReady = true;
-
-    } catch (error) {
-      console.error("Firebase initialization failed:", error);
-      firebaseReady = false;
-    }
-
-
-    /* =========================================================
-       APPLICATION STATE
-       ========================================================= */
-
-    const state = {
-      coins: [],
-      site: {
-        siteName: APP.defaultSiteName,
-        logoBase64: "",
-        twitter: APP.defaultTwitter
-      },
-
-      activeCoin: null,
-
-      firebaseOnline: firebaseReady,
-
-      touchCount: 0,
-      touchTimer: null,
-
-      adminUnlocked: false,
-
-      dexRequestId: 0,
-      holderRequestId: 0
-    };
-
-
-    /* =========================================================
-       DOM REFERENCES
-       ========================================================= */
-
-    const $ = (selector) => document.querySelector(selector);
-
-    const DOM = {
-      navBrand: $("#navBrand"),
-      navLogo: $("#navLogo"),
-      heroTitle: $("#heroTitle"),
-      footerBrand: $("#footerBrand"),
-      footerLogo: $("#footerLogo"),
-      mainTwitterLink: $("#mainTwitterLink"),
-
-      totalCoins: $("#totalCoins"),
-      coinsLoading: $("#coinsLoading"),
-      coinsEmpty: $("#coinsEmpty"),
-      coinsGrid: $("#coinsGrid"),
-      syncStatus: $("#syncStatus"),
-
-      coinModal: $("#coinModal"),
-      closeCoinModal: $("#closeCoinModal"),
-
-      detailLogo: $("#detailLogo"),
-      detailName: $("#detailName"),
-      detailTicker: $("#detailTicker"),
-      detailChain: $("#detailChain"),
-      detailCA: $("#detailCA"),
-
-      copyCaButton: $("#copyCaButton"),
-      copyCaLabel: $("#copyCaLabel"),
-
-      detailMcap: $("#detailMcap"),
-      detailPrice: $("#detailPrice"),
-      detailVolume: $("#detailVolume"),
-      detailHolders: $("#detailHolders"),
-
-      refreshHolders: $("#refreshHolders"),
-      apiStatus: $("#apiStatus"),
-
-      buyButton: $("#buyButton"),
-      dexButton: $("#dexButton"),
-      twitterCoinButton: $("#twitterCoinButton"),
-
-      toastContainer: $("#toastContainer")
-    };
-
-
-    /* =========================================================
-       UTILITY FUNCTIONS
-       ========================================================= */
-
-    function escapeHTML(value) {
-      const div = document.createElement("div");
-      div.textContent = value == null ? "" : String(value);
-      return div.innerHTML;
-    }
-
-
-    function normalizeTicker(ticker) {
-      let value = String(ticker || "").trim();
-
-      if (!value) {
-        return "TOKEN";
-      }
-
-      value = value.replace(/^\$/, "");
-
-      return value.toUpperCase();
-    }
-
-
-    function formatNumber(value) {
-      const number = Number(value);
-
-      if (!Number.isFinite(number)) {
-        return "—";
-      }
-
-      return new Intl.NumberFormat("en-US", {
-        maximumFractionDigits: 0
-      }).format(number);
-    }
-
-
-    function formatUSD(value) {
-      const number = Number(value);
-
-      if (!Number.isFinite(number)) {
-        return "—";
-      }
-
-      if (number === 0) {
-        return "$0";
-      }
-
-      if (Math.abs(number) >= 1e9) {
-        return "$" + (number / 1e9).toFixed(2) + "B";
-      }
-
-      if (Math.abs(number) >= 1e6) {
-        return "$" + (number / 1e6).toFixed(2) + "M";
-      }
-
-      if (Math.abs(number) >= 1e3) {
-        return "$" + (number / 1e3).toFixed(2) + "K";
-      }
-
-      if (Math.abs(number) < 0.000001) {
-        return "$" + number.toExponential(3);
-      }
-
-      if (Math.abs(number) < 0.01) {
-        return "$" + number.toFixed(8);
-      }
-
-      if (Math.abs(number) < 1) {
-        return "$" + number.toFixed(6);
-      }
-
-      return "$" + number.toLocaleString("en-US", {
-        maximumFractionDigits: 4
-      });
-    }
-
-
-    function shortenAddress(address) {
-      if (!address) {
-        return "—";
-      }
-
-      if (address.length <= 18) {
-        return address;
-      }
-
-      return address.slice(0, 9) + "..." + address.slice(-7);
-    }
-
-
-    function isValidHttpUrl(value) {
-      if (!value) {
-        return false;
-      }
-
-      try {
-        const url = new URL(value);
-
-        return url.protocol === "https:" ||
-               url.protocol === "http:";
-      } catch {
-        return false;
-      }
-    }
-
-
-    function normalizeExternalUrl(value, fallback = "#") {
-      if (!value) {
-        return fallback;
-      }
-
-      const clean = String(value).trim();
-
-      if (isValidHttpUrl(clean)) {
-        return clean;
-      }
-
-      return fallback;
-    }
-
-
-    function showToast(message, type = "normal") {
-      const toast = document.createElement("div");
-
-      const colorClass =
-        type === "success"
-          ? "border-emerald-400/30 text-emerald-300"
-          : type === "error"
-            ? "border-red-400/30 text-red-300"
-            : "border-cyan/30 text-cyan";
-
-      toast.className =
-        `toast pointer-events-auto glass rounded-xl px-4 py-3 border ${colorClass} text-sm shadow-2xl whitespace-nowrap`;
-
-      toast.textContent = message;
-
-      DOM.toastContainer.appendChild(toast);
-
-      setTimeout(() => {
-        toast.style.opacity = "0";
-        toast.style.transform = "translate(-50%, 10px)";
-
-        setTimeout(() => toast.remove(), 250);
-      }, 2600);
-    }
-
-
-    function setSyncStatus(online) {
-      state.firebaseOnline = online;
-
-      if (online) {
-        DOM.syncStatus.innerHTML =
-          '<span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span> Live Sync';
-      } else {
-        DOM.syncStatus.innerHTML =
-          '<span class="w-2 h-2 rounded-full bg-yellow-400"></span> Offline Backup';
-      }
-    }
-
-
-    function renderLogo(element, logo, fallback = "🌾") {
-      if (!element) {
-        return;
-      }
-
-      element.innerHTML = "";
-
-      if (logo) {
-        const img = document.createElement("img");
-
-        img.src = logo;
-        img.alt = "Logo";
-        img.className = "w-full h-full object-contain";
-
-        img.onerror = () => {
-          element.innerHTML =
-            `<span class="text-xl">${fallback}</span>`;
-        };
-
-        element.appendChild(img);
-      } else {
-        const span = document.createElement("span");
-
-        span.className = "text-xl";
-        span.textContent = fallback;
-
-        element.appendChild(span);
-      }
-    }
-
-
-    function generateCoinId() {
-      return (
-        "coin_" +
-        Date.now().toString(36) +
-        "_" +
-        Math.random().toString(36).slice(2, 9)
-      );
-    }
-
-
-    /* =========================================================
-       LOCAL STORAGE FALLBACK
-       ========================================================= */
-
-    function getLocalSite() {
-      try {
-        const raw = localStorage.getItem(APP.localSiteKey);
-
-        if (!raw) {
-          return null;
-        }
-
-        const parsed = JSON.parse(raw);
-
-        if (!parsed || typeof parsed !== "object") {
-          return null;
-        }
-
-        return {
-          siteName: parsed.siteName || APP.defaultSiteName,
-          logoBase64: parsed.logoBase64 || "",
-          twitter: parsed.twitter || APP.defaultTwitter
-        };
-
-      } catch (error) {
-        console.error("Local site read error:", error);
-        return null;
-      }
-    }
-
-
-    function setLocalSite(site) {
-      try {
-        localStorage.setItem(
-          APP.localSiteKey,
-          JSON.stringify(site)
-        );
-      } catch (error) {
-        console.error("Local site write error:", error);
-      }
-    }
-
-
-    function getLocalCoins() {
-      try {
-        const raw = localStorage.getItem(APP.localCoinsKey);
-
-        if (!raw) {
-          return [];
-        }
-
-        const parsed = JSON.parse(raw);
-
-        return Array.isArray(parsed) ? parsed : [];
-
-      } catch (error) {
-        console.error("Local coins read error:", error);
-        return [];
-      }
-    }
-
-
-    function setLocalCoins(coins) {
-      try {
-        localStorage.setItem(
-          APP.localCoinsKey,
-          JSON.stringify(coins)
-        );
-      } catch (error) {
-        console.error("Local coins write error:", error);
-      }
-    }
-
-
-    /* =========================================================
-       SITE RENDERING
-       ========================================================= */
-
-    function applySiteConfig(site) {
-      state.site = {
-        siteName: site?.siteName || APP.defaultSiteName,
-        logoBase64: site?.logoBase64 || "",
-        twitter: site?.twitter || APP.defaultTwitter
-      };
-
-      document.title =
-        `${state.site.siteName} — Home of Viral Memes & Verified Ecosystem`;
-
-      DOM.navBrand.textContent = state.site.siteName;
-      DOM.footerBrand.textContent = state.site.siteName;
-
-      DOM.heroTitle.innerHTML =
-        `<span class="gradient-text">${escapeHTML(state.site.siteName)}</span>`;
-
-      DOM.mainTwitterLink.href =
-        normalizeExternalUrl(
-          state.site.twitter,
-          APP.defaultTwitter
-        );
-
-      renderLogo(
-        DOM.navLogo,
-        state.site.logoBase64,
-        "🌾"
-      );
-
-      renderLogo(
-        DOM.footerLogo,
-        state.site.logoBase64,
-        "🌾"
-      );
-    }
-
-
-    /* =========================================================
-       FIRESTORE REALTIME SITE CONFIG
-       ========================================================= */
-
-    function subscribeSiteConfig() {
-      if (!firebaseReady || !db) {
-        const local = getLocalSite();
-
-        if (local) {
-          applySiteConfig(local);
-        } else {
-          applySiteConfig(state.site);
-        }
-
-        setSyncStatus(false);
-        return;
-      }
-
-      try {
-        firestoreUnsubSite =
-          db.collection("site_config")
-            .doc("main")
-            .onSnapshot(
-              (snapshot) => {
-
-                if (snapshot.exists) {
-                  const data = snapshot.data();
-
-                  const site = {
-                    siteName: data.siteName || APP.defaultSiteName,
-                    logoBase64: data.logoBase64 || "",
-                    twitter: data.twitter || APP.defaultTwitter
-                  };
-
-                  setLocalSite(site);
-                  applySiteConfig(site);
-
-                } else {
-                  const local = getLocalSite();
-
-                  if (local) {
-                    applySiteConfig(local);
-                  } else {
-                    applySiteConfig(state.site);
-                  }
-                }
-
-                setSyncStatus(true);
-              },
-
-              (error) => {
-                console.error("Firestore site snapshot error:", error);
-
-                const local = getLocalSite();
-
-                if (local) {
-                  applySiteConfig(local);
-                }
-
-                setSyncStatus(false);
-              }
-            );
-
-      } catch (error) {
-        console.error(error);
-
-        const local = getLocalSite();
-
-        if (local) {
-          applySiteConfig(local);
-        }
-
-        setSyncStatus(false);
-      }
-    }
-
-
-    /* =========================================================
-       FIRESTORE REALTIME COINS
-       ========================================================= */
-
-    function subscribeCoins() {
-      if (!firebaseReady || !db) {
-        const localCoins = getLocalCoins();
-
-        state.coins = localCoins;
-
-        renderCoins();
-
-        setSyncStatus(false);
-
-        return;
-      }
-
-      try {
-        firestoreUnsubCoins =
-          db.collection("meme_coins")
-            .onSnapshot(
-              (snapshot) => {
-
-                const coins = [];
-
-                snapshot.forEach((doc) => {
-                  coins.push({
-                    id: doc.id,
-                    ...doc.data()
-                  });
-                });
-
-                coins.sort((a, b) => {
-                  const aTime =
-                    a.createdAt?.seconds ||
-                    a.createdAt ||
-                    0;
-
-                  const bTime =
-                    b.createdAt?.seconds ||
-                    b.createdAt ||
-                    0;
-
-                  return bTime - aTime;
-                });
-
-                state.coins = coins;
-
-                setLocalCoins(coins);
-
-                renderCoins();
-
-                setSyncStatus(true);
-              },
-
-              (error) => {
-                console.error("Firestore coins snapshot error:", error);
-
-                const localCoins = getLocalCoins();
-
-                state.coins = localCoins;
-
-                renderCoins();
-
-                setSyncStatus(false);
-              }
-            );
-
-      } catch (error) {
-        console.error(error);
-
-        state.coins = getLocalCoins();
-
-        renderCoins();
-
-        setSyncStatus(false);
-      }
-    }
-
-
-    /* =========================================================
-       COIN CARD RENDERING
-       STRICTLY ONLY:
-       1. Logo
-       2. Name + ticker
-       3. Holders
-       4. Description
-       ========================================================= */
-
-    function renderCoins() {
-      DOM.coinsLoading.classList.add("hidden");
-
-      DOM.totalCoins.textContent =
-        formatNumber(state.coins.length);
-
-      DOM.coinsGrid.innerHTML = "";
-
-      if (!state.coins.length) {
-        DOM.coinsGrid.classList.add("hidden");
-        DOM.coinsEmpty.classList.remove("hidden");
-        return;
-      }
-
-      DOM.coinsEmpty.classList.add("hidden");
-      DOM.coinsGrid.classList.remove("hidden");
-
-      state.coins.forEach((coin) => {
-
-        const card = document.createElement("article");
-
-        card.className =
-          "coin-card glass gradient-border rounded-2xl p-5 fade-in";
-
-        const logo = coin.logo || "";
-
-        const ticker =
-          normalizeTicker(coin.ticker);
-
-        const name =
-          coin.name || "Unnamed Coin";
-
-        const holders =
-          coin.holders ??
-          coin.holderCount ??
-          coin.initialHolders ??
-          0;
-
-        const description =
-          coin.description ||
-          "A community-driven meme coin from the MemeBarn ecosystem.";
-
-        card.innerHTML = `
-          <div class="logo-frame h-52 rounded-2xl border border-white/5 flex items-center justify-center overflow-hidden">
-            ${
-              logo
-                ? `<img src="${escapeHTML(logo)}"
-                        alt="${escapeHTML(name)} logo"
-                        class="w-full h-full object-contain p-5">`
-                : `<span class="text-6xl">🐸</span>`
-            }
-          </div>
-
-          <div class="mt-5">
-            <div class="flex items-center justify-between gap-3">
-
-              <div class="min-w-0">
-                <h3 class="font-space font-bold text-lg truncate">
-                  ${escapeHTML(name)}
-                </h3>
-
-                <div class="text-cyan text-sm font-semibold mt-0.5">
-                  $${escapeHTML(ticker)}
-                </div>
-              </div>
-
-            </div>
-
-            <div class="mt-4 text-sm text-gray-400">
-              👥 ${escapeHTML(formatNumber(holders))} Holders
-            </div>
-
-            <p class="mt-3 text-sm text-gray-500 leading-relaxed min-h-[42px]">
-              ${escapeHTML(description)}
+            <h1
+                id="heroTitle"
+                class="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-tight"
+            >
+                Meme<span class="gradient-text">Barn</span>
+            </h1>
+
+            <p class="text-lg sm:text-xl text-zinc-400 mt-6 max-w-2xl mx-auto">
+                Home of Viral Memes & Verified Ecosystem
             </p>
 
-            <button
-              type="button"
-              data-coin-id="${escapeHTML(coin.id)}"
-              class="detail-coin-button w-full mt-5 px-4 py-3 rounded-xl border border-white/10 hover:border-cyan/30 hover:bg-cyan/5 text-sm font-semibold transition flex items-center justify-center gap-2">
-              Lihat Detail & Data Live
-              <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
-            </button>
-          </div>
-        `;
+            <p class="text-sm text-zinc-600 mt-3">
+                Discover community-driven meme coins on Solana.
+            </p>
 
-        const button =
-          card.querySelector(".detail-coin-button");
-
-        button.addEventListener("click", () => {
-          openCoinModal(coin.id);
-        });
-
-        DOM.coinsGrid.appendChild(card);
-      });
-
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-    }
+        </div>
 
 
-    /* =========================================================
-       COIN DETAIL MODAL
-       ========================================================= */
+        <!-- STATS -->
 
-    function openCoinModal(coinId) {
-      const coin =
-        state.coins.find((item) => item.id === coinId);
+        <div class="max-w-4xl mx-auto mt-12 grid grid-cols-1 sm:grid-cols-3 gap-3">
 
-      if (!coin) {
-        showToast("Data koin tidak ditemukan.", "error");
-        return;
-      }
+            <div class="glass rounded-2xl p-5 text-center">
+                <div
+                    id="coinCount"
+                    class="text-3xl font-bold gradient-text"
+                >
+                    0
+                </div>
+                <div class="text-xs text-zinc-500 mt-1">
+                    Total Released Coins
+                </div>
+            </div>
 
-      state.activeCoin = coin;
+            <div class="glass rounded-2xl p-5 text-center">
+                <div class="text-3xl font-bold">
+                    Solana
+                </div>
+                <div class="text-xs text-zinc-500 mt-1">
+                    Network
+                </div>
+            </div>
 
-      const name =
-        coin.name || "Unnamed Coin";
+            <div class="glass rounded-2xl p-5 text-center">
+                <div class="flex justify-center items-center gap-2">
+                    <span class="pulse-dot"></span>
+                    <span class="text-2xl font-bold">
+                        Active
+                    </span>
+                </div>
+                <div class="text-xs text-zinc-500 mt-1">
+                    Dev Status
+                </div>
+            </div>
 
-      const ticker =
-        normalizeTicker(coin.ticker);
+        </div>
 
-      const ca =
-        String(coin.ca || coin.contractAddress || "").trim();
-
-      DOM.detailName.textContent = name;
-      DOM.detailTicker.textContent = "$" + ticker;
-      DOM.detailCA.textContent =
-        ca || "Contract Address tidak tersedia";
-
-      renderLogo(
-        DOM.detailLogo,
-        coin.logo || "",
-        "🐸"
-      );
-
-      DOM.detailMcap.textContent = "Loading...";
-      DOM.detailPrice.textContent = "Loading...";
-      DOM.detailVolume.textContent = "Loading...";
-      DOM.detailHolders.textContent = "Loading...";
-
-      DOM.apiStatus.innerHTML =
-        '<span class="spinner"></span> Mengambil data live...';
-
-      DOM.buyButton.href =
-        normalizeExternalUrl(
-          coin.buyLink,
-          ca
-            ? `https://raydium.io/swap/?inputMint=sol&outputMint=${encodeURIComponent(ca)}`
-            : "#"
-        );
-
-      DOM.dexButton.href =
-        ca
-          ? `https://dexscreener.com/solana/${encodeURIComponent(ca)}`
-          : "#";
-
-      if (coin.twitter && isValidHttpUrl(coin.twitter)) {
-        DOM.twitterCoinButton.href = coin.twitter;
-        DOM.twitterCoinButton.classList.remove("hidden");
-        DOM.twitterCoinButton.classList.add("flex");
-      } else {
-        DOM.twitterCoinButton.classList.add("hidden");
-        DOM.twitterCoinButton.classList.remove("flex");
-      }
-
-      DOM.coinModal.classList.remove("hidden");
-      document.body.classList.add("modal-open");
-
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-
-      loadDexData(coin);
-      loadHolderData(coin);
-    }
+    </div>
+</section>
 
 
-    function closeCoinModal() {
-      DOM.coinModal.classList.add("hidden");
-      document.body.classList.remove("modal-open");
+<!-- =========================================================
+     COINS
+========================================================= -->
 
-      state.activeCoin = null;
-    }
+<section class="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
 
+    <div class="flex items-end justify-between mb-7">
+        <div>
+            <div class="text-xs uppercase tracking-[.25em] text-cyan-400 mb-2">
+                Ecosystem
+            </div>
 
-    /* =========================================================
-       COPY CONTRACT
-       ========================================================= */
+            <h2 class="text-3xl font-bold">
+                Meme Coins
+            </h2>
+        </div>
 
-    async function copyContract() {
-      if (!state.activeCoin) {
-        return;
-      }
-
-      const ca =
-        String(
-          state.activeCoin.ca ||
-          state.activeCoin.contractAddress ||
-          ""
-        ).trim();
-
-      if (!ca) {
-        showToast("Contract Address tidak tersedia.", "error");
-        return;
-      }
-
-      try {
-        await navigator.clipboard.writeText(ca);
-
-        DOM.copyCaLabel.textContent = "Copied! ✓";
-
-        setTimeout(() => {
-          DOM.copyCaLabel.textContent = "Copy";
-        }, 1800);
-
-      } catch (error) {
-        try {
-          const textarea =
-            document.createElement("textarea");
-
-          textarea.value = ca;
-
-          textarea.style.position = "fixed";
-          textarea.style.opacity = "0";
-
-          document.body.appendChild(textarea);
-          textarea.select();
-
-          document.execCommand("copy");
-
-          textarea.remove();
-
-          DOM.copyCaLabel.textContent = "Copied! ✓";
-
-          setTimeout(() => {
-            DOM.copyCaLabel.textContent = "Copy";
-          }, 1800);
-
-        } catch (fallbackError) {
-          showToast(
-            "Gagal menyalin contract address.",
-            "error"
-          );
-        }
-      }
-    }
+        <div class="text-sm text-zinc-500">
+            Live Database
+        </div>
+    </div>
 
 
-    /* =========================================================
-       DEXSCREENER API
-       ========================================================= */
+    <div
+        id="coinsGrid"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+    >
+        <div
+            class="col-span-full glass rounded-2xl p-12 flex flex-col items-center justify-center"
+        >
+            <div class="loading-spinner mb-4"></div>
+            <div class="text-zinc-500">
+                Loading MemeBarn ecosystem...
+            </div>
+        </div>
+    </div>
 
-    async function loadDexData(coin) {
-      const ca =
-        String(
-          coin.ca ||
-          coin.contractAddress ||
-          ""
-        ).trim
+</section>
+
+</main>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer class="border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-between items-center">
+
+            <div class="text-sm text-zinc-600">
+                © <span id="footerYear"></span>
+                <span id="footerTitle">MemeBarn</span>
+            </div>
+
+            <div class="text-xs text-zinc-700">
+                Built on Solana
+            </div>
+
+        </div>
+
+    </div>
+</footer>
+
+
+<script>
+/* =========================================================
+   FIREBASE CONFIGURATION
+========================================================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDr3laJFOxFbpirBtqPT6Shhr9T1IqGZ9g",
+    authDomain: "memebarn.firebaseapp.com",
+    projectId
