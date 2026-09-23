@@ -418,4 +418,3124 @@
 const firebaseConfig = {
     apiKey: "AIzaSyDr3laJFOxFbpirBtqPT6Shhr9T1IqGZ9g",
     authDomain: "memebarn.firebaseapp.com",
-    projectId
+    projectId: "memebarn",
+    storageBucket: "memebarn.firebasestorage.app",
+    messagingSenderId: "186305606859",
+    appId: "1:186305606859:web:64cde4829cd775d420974e"
+};
+
+let firebaseReady = false;
+let db = null;
+
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    firebaseReady = true;
+} catch (error) {
+    console.error("Firebase initialization error:", error);
+}
+
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+
+let coins = [];
+let siteConfig = {
+    title: "MemeBarn",
+    logo: "",
+    twitter: ""
+};
+
+let selectedCoin = null;
+
+const LOCAL_COINS_KEY = "memebarn_local_coins";
+const LOCAL_CONFIG_KEY = "memebarn_local_config";
+
+
+/* =========================================================
+   LOCAL STORAGE FALLBACK
+========================================================= */
+
+function getLocalCoins() {
+
+    try {
+        const data =
+            localStorage.getItem(LOCAL_COINS_KEY);
+
+        if (!data) {
+            return [];
+        }
+
+        const parsed = JSON.parse(data);
+
+        return Array.isArray(parsed)
+            ? parsed
+            : [];
+
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+
+function saveLocalCoins(data) {
+
+    try {
+        localStorage.setItem(
+            LOCAL_COINS_KEY,
+            JSON.stringify(data)
+        );
+    } catch (error) {
+        console.error(
+            "Unable to save local coins",
+            error
+        );
+    }
+}
+
+
+function getLocalConfig() {
+
+    try {
+        const data =
+            localStorage.getItem(LOCAL_CONFIG_KEY);
+
+        if (!data) {
+            return {
+                title: "MemeBarn",
+                logo: "",
+                twitter: ""
+            };
+        }
+
+        return {
+            title: "MemeBarn",
+            logo: "",
+            twitter: "",
+            ...JSON.parse(data)
+        };
+
+    } catch (error) {
+        return {
+            title: "MemeBarn",
+            logo: "",
+            twitter: ""
+        };
+    }
+}
+
+
+function saveLocalConfig(config) {
+
+    try {
+        localStorage.setItem(
+            LOCAL_CONFIG_KEY,
+            JSON.stringify(config)
+        );
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
+/* =========================================================
+   INITIAL LOAD
+========================================================= */
+
+function initializeLocalFallback() {
+
+    coins = getLocalCoins();
+
+    siteConfig = getLocalConfig();
+
+    renderSiteConfig();
+    renderCoins();
+}
+
+
+function initializeFirebaseListeners() {
+
+    if (!firebaseReady || !db) {
+        initializeLocalFallback();
+        return;
+    }
+
+
+    db.collection("meme_coins")
+        .onSnapshot(
+            snapshot => {
+
+                coins = [];
+
+                snapshot.forEach(doc => {
+
+                    coins.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+
+                });
+
+                saveLocalCoins(coins);
+
+                renderCoins();
+
+            },
+            error => {
+
+                console.error(
+                    "meme_coins listener error:",
+                    error
+                );
+
+                coins = getLocalCoins();
+
+                renderCoins();
+            }
+        );
+
+
+    db.collection("site_config")
+        .doc("main")
+        .onSnapshot(
+            snapshot => {
+
+                if (snapshot.exists) {
+
+                    siteConfig = {
+                        ...siteConfig,
+                        ...snapshot.data()
+                    };
+
+                    saveLocalConfig(siteConfig);
+
+                } else {
+
+                    siteConfig = {
+                        ...getLocalConfig()
+                    };
+                }
+
+                renderSiteConfig();
+
+            },
+            error => {
+
+                console.error(
+                    "site_config listener error:",
+                    error
+                );
+
+                siteConfig = getLocalConfig();
+
+                renderSiteConfig();
+            }
+        );
+}
+
+
+/* =========================================================
+   SITE CONFIG RENDER
+========================================================= */
+
+function renderSiteConfig() {
+
+    const title =
+        siteConfig.title ||
+        "MemeBarn";
+
+    document.title = title;
+
+    const navbarTitle =
+        document.getElementById("navbarTitle");
+
+    if (navbarTitle) {
+        navbarTitle.textContent = title;
+    }
+
+    const heroTitle =
+        document.getElementById("heroTitle");
+
+    if (heroTitle) {
+
+        const safeTitle =
+            escapeHTML(title);
+
+        heroTitle.innerHTML =
+            safeTitle;
+    }
+
+    const footerTitle =
+        document.getElementById("footerTitle");
+
+    if (footerTitle) {
+        footerTitle.textContent = title;
+    }
+
+
+    const logo =
+        siteConfig.logo || "";
+
+    const navbarLogo =
+        document.getElementById("navbarLogo");
+
+    if (navbarLogo) {
+
+        if (logo) {
+
+            navbarLogo.innerHTML = `
+                <img
+                    src="${escapeAttribute(logo)}"
+                    alt="${escapeAttribute(title)}"
+                    class="w-full h-full object-contain"
+                >
+            `;
+
+        } else {
+
+            navbarLogo.innerHTML = `
+                <div class="text-xl font-bold gradient-text">
+                    ${escapeHTML(title.charAt(0).toUpperCase())}
+                </div>
+            `;
+        }
+    }
+
+
+    const twitter =
+        siteConfig.twitter || "#";
+
+    const twitterLink =
+        document.getElementById("mainTwitterLink");
+
+    if (twitterLink) {
+        twitterLink.href = twitter;
+    }
+}
+
+
+/* =========================================================
+   RENDER COINS
+========================================================= */
+
+function renderCoins() {
+
+    const grid =
+        document.getElementById("coinsGrid");
+
+    const counter =
+        document.getElementById("coinCount");
+
+    if (counter) {
+        counter.textContent = coins.length;
+    }
+
+    if (!grid) {
+        return;
+    }
+
+    if (!coins.length) {
+
+        grid.innerHTML = `
+            <div class="col-span-full glass rounded-2xl p-12 text-center">
+
+                <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-white/5 flex items-center justify-center">
+                    <i data-lucide="coins" class="w-8 h-8 text-zinc-600"></i>
+                </div>
+
+                <h3 class="text-lg font-semibold">
+                    Belum ada meme coin
+                </h3>
+
+                <p class="text-sm text-zinc-500 mt-2">
+                    Meme coins akan muncul di sini setelah dirilis.
+                </p>
+
+            </div>
+        `;
+
+        refreshIcons();
+
+        return;
+    }
+
+
+    grid.innerHTML =
+        coins.map(coin => {
+
+            const logo =
+                coin.logo ||
+                createDefaultCoinLogo(
+                    coin.name || "M"
+                );
+
+            const name =
+                coin.name || "Unnamed Coin";
+
+            const ticker =
+                coin.ticker || "TOKEN";
+
+            const holders =
+                Number(coin.holders || 0);
+
+            const description =
+                coin.description ||
+                "Community-driven meme coin.";
+
+            return `
+                <article
+                    class="coin-card glass rounded-2xl p-5 flex flex-col"
+                >
+
+                    <!--
+                        STRICT CARD:
+                        Logo
+                        Name/Ticker
+                        Holders
+                        Description
+                    -->
+
+                    <div class="flex justify-center mb-5">
+                        <img
+                            src="${escapeAttribute(logo)}"
+                            alt="${escapeAttribute(name)}"
+                            class="coin-logo"
+                            loading="lazy"
+                        >
+                    </div>
+
+                    <div class="text-center">
+
+                        <h3 class="font-bold text-xl">
+                            ${escapeHTML(name)}
+                        </h3>
+
+                        <div class="text-cyan-400 font-semibold mt-1">
+                            $${escapeHTML(ticker)}
+                        </div>
+
+                    </div>
+
+                    <div class="text-center mt-4 text-sm text-zinc-400">
+                        👥 ${formatNumber(holders)} Holders
+                    </div>
+
+                    <p class="text-sm text-zinc-500 text-center mt-4 min-h-[42px]">
+                        ${escapeHTML(description)}
+                    </p>
+
+                    <button
+                        onclick="openCoinModal('${escapeAttribute(coin.id)}')"
+                        class="mt-6 w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-cyan-400/30 transition flex items-center justify-center gap-2 text-sm font-medium"
+                    >
+                        <i data-lucide="activity" class="w-4 h-4"></i>
+                        Lihat Detail & Data Live
+                    </button>
+
+                </article>
+            `;
+
+        }).join("");
+
+    refreshIcons();
+}
+
+
+/* =========================================================
+   COIN MODAL
+========================================================= */
+
+function openCoinModal(id) {
+
+    const coin =
+        coins.find(item => item.id === id);
+
+    if (!coin) {
+        return;
+    }
+
+    selectedCoin = coin;
+
+    const modal =
+        document.createElement("div");
+
+    modal.id =
+        "coinDetailModal";
+
+    modal.className =
+        "fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md fade-in";
+
+    const logo =
+        coin.logo ||
+        createDefaultCoinLogo(
+            coin.name || "M"
+        );
+
+    modal.innerHTML = `
+        <div
+            class="glass w-full max-w-3xl max-h-[92vh] rounded-3xl overflow-hidden flex flex-col"
+        >
+
+            <div class="p-5 sm:p-7 border-b border-white/5">
+
+                <div class="flex justify-between items-start gap-4">
+
+                    <div class="flex items-center gap-4 min-w-0">
+
+                        <div class="w-16 h-16 rounded-2xl bg-black/20 overflow-hidden flex items-center justify-center shrink-0">
+                            <img
+                                src="${escapeAttribute(logo)}"
+                                class="w-full h-full object-contain"
+                                alt=""
+                            >
+                        </div>
+
+                        <div class="min-w-0">
+
+                            <h2 class="text-xl sm:text-2xl font-bold truncate">
+                                ${escapeHTML(coin.name || "Unnamed")}
+                            </h2>
+
+                            <div class="flex items-center gap-2 mt-1">
+
+                                <span class="text-cyan-400 font-semibold">
+                                    $${escapeHTML(coin.ticker || "TOKEN")}
+                                </span>
+
+                                <span class="text-xs px-2 py-1 rounded-md bg-purple-500/10 text-purple-300">
+                                    Solana
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        onclick="closeCoinModal()"
+                        class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center shrink-0"
+                    >
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-scroll overflow-y-auto p-5 sm:p-7">
+
+                <div class="mb-7">
+
+                    <div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+                        Contract Address
+                    </div>
+
+                    <div class="flex gap-2">
+
+                        <div
+                            class="flex-1 min-w-0 bg-black/30 border border-white/5 rounded-xl px-4 py-3 text-xs sm:text-sm font-mono text-zinc-400 truncate"
+                            id="contractAddress"
+                        >
+                            ${escapeHTML(coin.ca || "N/A")}
+                        </div>
+
+                        <button
+                            onclick="copyContractAddress()"
+                            class="px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"
+                        >
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </button>
+
+                    </div>
+
+                    <div
+                        id="copyFeedback"
+                        class="text-xs text-emerald-400 mt-2 hidden"
+                    >
+                        Copied! ✓
+                    </div>
+
+                </div>
+
+
+                <div class="grid grid-cols-2 gap-3 mb-7">
+
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
+
+                        <div class="text-xs text-zinc-500">
+                            Market Cap / FDV
+                        </div>
+
+                        <div
+                            id="modalFDV"
+                            class="text-lg font-bold mt-2"
+                        >
+                            Loading...
+                        </div>
+
+                    </div>
+
+
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
+
+                        <div class="text-xs text-zinc-500">
+                            Price USD
+                        </div>
+
+                        <div
+                            id="modalPrice"
+                            class="text-lg font-bold mt-2"
+                        >
+                            Loading...
+                        </div>
+
+                    </div>
+
+
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
+
+                        <div class="text-xs text-zinc-500">
+                            24h Volume
+                        </div>
+
+                        <div
+                            id="modalVolume"
+                            class="text-lg font-bold mt-2"
+                        >
+                            Loading...
+                        </div>
+
+                    </div>
+
+
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4">
+
+                        <div class="flex justify-between items-center">
+
+                            <div class="text-xs text-zinc-500">
+                                Total Holders
+                            </div>
+
+                            <button
+                                onclick="refreshHolders()"
+                                class="text-zinc-500 hover:text-white"
+                                title="Refresh holders"
+                            >
+                                🔄
+                            </button>
+
+                        </div>
+
+                        <div
+                            id="modalHolders"
+                            class="text-lg font-bold mt-2"
+                        >
+                            ${formatNumber(coin.holders || 0)}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="mb-7">
+
+                    <div class="text-xs text-zinc-500 uppercase tracking-wider mb-2">
+                        Description
+                    </div>
+
+                    <div class="text-zinc-300 text-sm leading-relaxed">
+                        ${escapeHTML(
+                            coin.description ||
+                            "Community-driven meme coin."
+                        )}
+                    </div>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                    <a
+                        id="buyCoinButton"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 hover:opacity-90 transition font-semibold text-center"
+                    >
+                        Beli Sekarang di DEX
+                    </a>
+
+                    <a
+                        id="dexButton"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition font-semibold text-center"
+                    >
+                        DexScreener Live Chart
+                    </a>
+
+                    <a
+                        id="coinTwitterButton"
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="sm:col-span-2 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition font-semibold text-center"
+                    >
+                        Twitter / X Coin
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    refreshIcons();
+
+    setupCoinLinks(coin);
+
+    fetchDexScreenerData(coin.ca);
+
+    /*
+        Solscan hanya dipanggil satu kali
+        saat modal dibuka.
+    */
+    fetchSolscanHolders(coin.ca);
+}
+
+
+function closeCoinModal() {
+
+    const modal =
+        document.getElementById(
+            "coinDetailModal"
+        );
+
+    if (modal) {
+        modal.remove();
+    }
+
+    selectedCoin = null;
+}
+
+
+function setupCoinLinks(coin) {
+
+    const buyButton =
+        document.getElementById(
+            "buyCoinButton"
+        );
+
+    const dexButton =
+        document.getElementById(
+            "dexButton"
+        );
+
+    const twitterButton =
+        document.getElementById(
+            "coinTwitterButton"
+        );
+
+
+    const defaultDex =
+        coin.ca
+            ? `https://dexscreener.com/solana/${encodeURIComponent(coin.ca)}`
+            : "#";
+
+
+    const defaultBuy =
+        coin.ca
+            ? `https://raydium.io/swap/?inputMint=sol&outputMint=${encodeURIComponent(coin.ca)}`
+            : "#";
+
+
+    if (buyButton) {
+        buyButton.href =
+            coin.buyLink ||
+            defaultBuy;
+    }
+
+
+    if (dexButton) {
+        dexButton.href =
+            defaultDex;
+    }
+
+
+    if (twitterButton) {
+
+        if (coin.twitter) {
+
+            twitterButton.href =
+                coin.twitter;
+
+            twitterButton.classList.remove(
+                "hidden-important"
+            );
+
+        } else {
+
+            twitterButton.classList.add(
+                "hidden-important"
+            );
+        }
+    }
+}
+
+
+/* =========================================================
+   COPY CA
+========================================================= */
+
+async function copyContractAddress() {
+
+    if (!selectedCoin || !selectedCoin.ca) {
+        return;
+    }
+
+    try {
+
+        await navigator.clipboard.writeText(
+            selectedCoin.ca
+        );
+
+        const feedback =
+            document.getElementById(
+                "copyFeedback"
+            );
+
+        if (feedback) {
+
+            feedback.classList.remove(
+                "hidden"
+            );
+
+            setTimeout(() => {
+
+                feedback.classList.add(
+                    "hidden"
+                );
+
+            }, 1800);
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Gagal menyalin Contract Address."
+        );
+    }
+}
+
+
+/* =========================================================
+   DEXSCREENER API
+========================================================= */
+
+async function fetchDexScreenerData(ca) {
+
+    if (!ca) {
+        setDexError();
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(ca)}`
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "DexScreener HTTP " +
+                response.status
+            );
+        }
+
+        const data =
+            await response.json();
+
+        const pair =
+            chooseBestDexPair(
+                data.pairs
+            );
+
+        if (!pair) {
+            setDexError();
+            return;
+        }
+
+        const fdv =
+            pair.fdv ??
+            pair.marketCap ??
+            null;
+
+        const price =
+            pair.priceUsd ??
+            null;
+
+        const volume =
+            pair.volume &&
+            pair.volume.h24 !== undefined
+                ? pair.volume.h24
+                : null;
+
+
+        setText(
+            "modalFDV",
+            fdv !== null
+                ? formatUSD(fdv)
+                : "N/A"
+        );
+
+        setText(
+            "modalPrice",
+            price !== null
+                ? formatPrice(price)
+                : "N/A"
+        );
+
+        setText(
+            "modalVolume",
+            volume !== null
+                ? formatUSD(volume)
+                : "N/A"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "DexScreener error:",
+            error
+        );
+
+        setDexError();
+    }
+}
+
+
+function chooseBestDexPair(pairs) {
+
+    if (!Array.isArray(pairs) ||
+        !pairs.length) {
+
+        return null;
+    }
+
+    const solanaPairs =
+        pairs.filter(
+            pair =>
+                pair.chainId === "solana"
+        );
+
+    const list =
+        solanaPairs.length
+            ? solanaPairs
+            : pairs;
+
+    return [...list].sort(
+        (a, b) => {
+
+            const liquidityA =
+                Number(
+                    a?.liquidity?.usd || 0
+                );
+
+            const liquidityB =
+                Number(
+                    b?.liquidity?.usd || 0
+                );
+
+            return liquidityB -
+                liquidityA;
+
+        }
+    )[0];
+}
+
+
+function setDexError() {
+
+    setText(
+        "modalFDV",
+        "N/A"
+    );
+
+    setText(
+        "modalPrice",
+        "N/A"
+    );
+
+    setText(
+        "modalVolume",
+        "N/A"
+    );
+}
+
+
+/* =========================================================
+   SOLSCAN API
+========================================================= */
+
+async function fetchSolscanHolders(ca) {
+
+    if (!ca) {
+        return;
+    }
+
+    const holdersElement =
+        document.getElementById(
+            "modalHolders"
+        );
+
+    if (holdersElement) {
+
+        holdersElement.innerHTML = `
+            <span class="inline-flex items-center gap-2">
+                <span class="loading-spinner"></span>
+                Loading
+            </span>
+        `;
+    }
+
+
+    try {
+
+        /*
+         IMPORTANT:
+         API key frontend akan terlihat
+         oleh pengguna.
+
+         Gunakan backend/proxy pada production.
+        */
+
+        const solscanApiKey =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3OTAwODMwNTQxODEsImVtYWlsIjoic2V0b2FqaW51Z3JvaW9iaXNuaXNAZ21haWwuY29tIiwiYWN0aW9uIjoidG9rZW4tYXBpIiwiaWF0IjoxNzkwMDgzMDU0fQ.2tj1eEkXAm_MVvTWZpWjnfiBUx6Wk6LDSqWwG81W9c0";
+
+
+        const response =
+            await fetch(
+                `https://pro-api.solscan.io/v2.0/token/meta?address=${encodeURIComponent(ca)}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "token": solscanApiKey
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+            throw new Error(
+                "Solscan HTTP " +
+                response.status
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const holders =
+            extractHolders(data);
+
+
+        if (
+            holders !== null &&
+            holders !== undefined
+        ) {
+
+            setText(
+                "modalHolders",
+                formatNumber(holders)
+            );
+
+
+            /*
+                Update local selected coin
+                only in memory.
+            */
+
+            if (selectedCoin) {
+                selectedCoin.holders =
+                    Number(holders);
+            }
+
+        } else {
+
+            setText(
+                "modalHolders",
+                "N/A"
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Solscan error:",
+            error
+        );
+
+        /*
+            Fallback ke data Firestore.
+        */
+
+        const fallback =
+            selectedCoin?.holders || 0;
+
+        setText(
+            "modalHolders",
+            formatNumber(fallback)
+        );
+    }
+}
+
+
+/*
+    Solscan response bisa berubah.
+    Coba beberapa struktur umum.
+*/
+
+function extractHolders(data) {
+
+    if (!data) {
+        return null;
+    }
+
+    const candidates = [
+
+        data?.data?.holder,
+        data?.data?.holders,
+        data?.data?.holderCount,
+
+        data?.holder,
+        data?.holders,
+        data?.holderCount
+
+    ];
+
+
+    for (
+        const value of candidates
+    ) {
+
+        if (
+            value !== undefined &&
+            value !== null &&
+            value !== ""
+        ) {
+
+            const numeric =
+                Number(value);
+
+            if (
+                Number.isFinite(numeric)
+            ) {
+                return numeric;
+            }
+        }
+    }
+
+    return null;
+}
+
+
+async function refreshHolders() {
+
+    if (!selectedCoin ||
+        !selectedCoin.ca) {
+
+        return;
+    }
+
+    await fetchSolscanHolders(
+        selectedCoin.ca
+    );
+}
+
+
+/* =========================================================
+   ADMIN TRIGGER
+========================================================= */
+
+/*
+    MOBILE SECRET TRIGGER
+
+    SEKARANG:
+    10 ketukan cepat
+    maksimal 3 detik.
+
+    Tidak ada tombol Admin
+    di Navbar/Footer.
+*/
+
+let adminTapCount = 0;
+let adminTapTimer = null;
+
+
+document.addEventListener(
+    "pointerdown",
+    function () {
+
+        adminTapCount++;
+
+        clearTimeout(
+            adminTapTimer
+        );
+
+
+        adminTapTimer =
+            setTimeout(
+                function () {
+
+                    adminTapCount = 0;
+
+                },
+                3000
+            );
+
+
+        /*
+            10 TAP
+        */
+
+        if (
+            adminTapCount >= 10
+        ) {
+
+            adminTapCount = 0;
+
+            clearTimeout(
+                adminTapTimer
+            );
+
+            openAdminLogin();
+        }
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+/*
+    DESKTOP SECRET TRIGGER
+
+    CTRL + SHIFT + A
+*/
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (
+            event.ctrlKey &&
+            event.shiftKey &&
+            event.key.toLowerCase() === "a"
+        ) {
+
+            event.preventDefault();
+
+            openAdminLogin();
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ADMIN LOGIN
+========================================================= */
+
+function openAdminLogin() {
+
+    const existing =
+        document.getElementById(
+            "memebarn-admin-login"
+        );
+
+    if (existing) {
+        existing.remove();
+    }
+
+
+    const modal =
+        document.createElement("div");
+
+    modal.id =
+        "memebarn-admin-login";
+
+    modal.className =
+        "fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl fade-in";
+
+
+    modal.innerHTML = `
+
+        <div
+            class="w-full max-w-md glass rounded-3xl p-6 sm:p-8"
+        >
+
+            <div class="flex justify-between items-start mb-7">
+
+                <div>
+
+                    <div class="text-xs text-cyan-400 tracking-[.25em] font-bold">
+                        MEMEBARN
+                    </div>
+
+                    <h2 class="text-2xl font-bold mt-1">
+                        Admin Access
+                    </h2>
+
+                </div>
+
+
+                <button
+                    id="adminCloseBtn"
+                    class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center"
+                >
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+
+            </div>
+
+
+            <label class="admin-label">
+                Admin Password
+            </label>
+
+            <input
+                id="adminPassword"
+                type="password"
+                class="admin-input mb-4"
+                placeholder="Masukkan password"
+                autocomplete="current-password"
+            >
+
+
+            <button
+                id="adminLoginBtn"
+                class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 font-semibold hover:opacity-90 transition"
+            >
+                Unlock Admin
+            </button>
+
+
+            <div
+                id="adminLoginError"
+                class="hidden text-center text-red-400 text-sm mt-4"
+            >
+                Password salah.
+            </div>
+
+        </div>
+    `;
+
+
+    document.body.appendChild(
+        modal
+    );
+
+    refreshIcons();
+
+
+    document
+        .getElementById(
+            "adminCloseBtn"
+        )
+        .addEventListener(
+            "click",
+            () => modal.remove()
+        );
+
+
+    document
+        .getElementById(
+            "adminLoginBtn"
+        )
+        .addEventListener(
+            "click",
+            verifyAdminPassword
+        );
+
+
+    document
+        .getElementById(
+            "adminPassword"
+        )
+        .addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    verifyAdminPassword();
+                }
+
+            }
+        );
+
+
+    setTimeout(
+        () => {
+
+            const input =
+                document.getElementById(
+                    "adminPassword"
+                );
+
+            if (input) {
+                input.focus();
+            }
+
+        },
+        100
+    );
+}
+
+
+/* =========================================================
+   ADMIN PASSWORD SHA-256
+========================================================= */
+
+async function verifyAdminPassword() {
+
+    const input =
+        document
+            .getElementById(
+                "adminPassword"
+            )
+            .value;
+
+
+    const encoder =
+        new TextEncoder();
+
+
+    const data =
+        encoder.encode(
+            input
+        );
+
+
+    const hashBuffer =
+        await crypto.subtle.digest(
+            "SHA-256",
+            data
+        );
+
+
+    const hashArray =
+        Array.from(
+            new Uint8Array(
+                hashBuffer
+            )
+        );
+
+
+    const hash =
+        hashArray
+            .map(
+                byte =>
+                    byte
+                        .toString(16)
+                        .padStart(2, "0")
+            )
+            .join("");
+
+
+    const correctHash =
+        "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
+
+
+    if (
+        hash === correctHash
+    ) {
+
+        const loginModal =
+            document.getElementById(
+                "memebarn-admin-login"
+            );
+
+        if (loginModal) {
+            loginModal.remove();
+        }
+
+        openAdminPanel();
+
+    } else {
+
+        const error =
+            document.getElementById(
+                "adminLoginError"
+            );
+
+        if (error) {
+
+            error.classList.remove(
+                "hidden"
+            );
+        }
+    }
+}
+
+
+/* =========================================================
+   ADMIN PANEL
+========================================================= */
+
+function openAdminPanel() {
+
+    const existing =
+        document.getElementById(
+            "memebarn-admin-panel"
+        );
+
+    if (existing) {
+        existing.remove();
+    }
+
+
+    const panel =
+        document.createElement("div");
+
+    panel.id =
+        "memebarn-admin-panel";
+
+    panel.className =
+        "fixed inset-0 z-[99998] overflow-y-auto bg-[#07080B] text-white fade-in";
+
+
+    panel.innerHTML = `
+
+        <div class="max-w-5xl mx-auto px-4 py-6 sm:py-10">
+
+            <!-- ADMIN HEADER -->
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-8">
+
+                <div>
+
+                    <div class="text-xs text-cyan-400 tracking-[.25em] font-bold">
+                        MEMEBARN
+                    </div>
+
+                    <h1 class="text-3xl font-bold mt-1">
+                        Admin Panel
+                    </h1>
+
+                    <p class="text-sm text-zinc-500 mt-1">
+                        Manage site, social media and meme coins.
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="closeAdminPanel"
+                    class="px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10"
+                >
+                    Close Admin
+                </button>
+
+            </div>
+
+
+            <!-- SITE CUSTOMIZATION -->
+
+            <section class="glass rounded-3xl p-5 sm:p-7 mb-5">
+
+                <div class="flex items-center gap-3 mb-6">
+
+                    <div class="w-10 h-10 rounded-xl bg-cyan-400/10 flex items-center justify-center">
+                        <i data-lucide="palette" class="w-5 h-5 text-cyan-400"></i>
+                    </div>
+
+                    <div>
+
+                        <h2 class="font-bold text-xl">
+                            Site Customization
+                        </h2>
+
+                        <p class="text-xs text-zinc-500">
+                            Global website appearance
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="grid md:grid-cols-2 gap-5">
+
+                    <div>
+
+                        <label class="admin-label">
+                            Judul Situs Web
+                        </label>
+
+                        <input
+                            id="siteTitleInput"
+                            class="admin-input"
+                            value="${escapeAttribute(
+                                siteConfig.title || "MemeBarn"
+                            )}"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="admin-label">
+                            Logo Situs
+                        </label>
+
+                        <input
+                            id="siteLogoInput"
+                            type="file"
+                            accept="image/*"
+                            class="admin-input"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="mt-5 flex flex-wrap gap-3">
+
+                    <button
+                        id="saveSiteButton"
+                        class="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-purple-600 font-semibold"
+                    >
+                        Save Site Settings
+                    </button>
+
+                    <span
+                        id="siteSaveStatus"
+                        class="text-sm text-zinc-500 self-center"
+                    ></span>
+
+                </div>
+
+            </section>
+
+
+            <!-- SOCIAL -->
+
+            <section class="glass rounded-3xl p-5 sm:p-7 mb-5">
+
+                <div class="flex items-center gap-3 mb-6">
+
+                    <div class="w-10 h-10 rounded-xl bg-purple-400/10 flex items-center justify-center">
+                        <i data-lucide="share-2" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+
+                    <div>
+
+                        <h2 class="font-bold text-xl">
+                            Social Media
+                        </h2>
+
+                        <p class="text-xs text-zinc-500">
+                            Official developer account
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <label class="admin-label">
+                    URL Twitter / X Dev Utama
+                </label>
+
+                <input
+                    id="twitterUrlInput"
+                    class="admin-input"
+                    placeholder="https://x.com/username"
+                    value="${escapeAttribute(
+                        siteConfig.twitter || ""
+                    )}"
+                >
+
+
+                <button
+                    id="saveTwitterButton"
+                    class="mt-4 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-semibold"
+                >
+                    Save Twitter
+                </button>
+
+                <span
+                    id="twitterSaveStatus"
+                    class="text-sm text-zinc-500 ml-3"
+                ></span>
+
+            </section>
+
+
+            <!-- ADD COIN -->
+
+            <section class="glass rounded-3xl p-5 sm:p-7 mb-5">
+
+                <div class="flex items-center gap-3 mb-6">
+
+                    <div class="w-10 h-10 rounded-xl bg-emerald-400/10 flex items-center justify-center">
+                        <i data-lucide="plus-circle" class="w-5 h-5 text-emerald-400"></i>
+                    </div>
+
+                    <div>
+
+                        <h2 class="font-bold text-xl">
+                            Tambah Meme Coin
+                        </h2>
+
+                        <p class="text-xs text-zinc-500">
+                            Add new ecosystem token
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="grid md:grid-cols-2 gap-5">
+
+                    <div>
+
+                        <label class="admin-label">
+                            Nama Koin *
+                        </label>
+
+                        <input
+                            id="coinNameInput"
+                            class="admin-input"
+                            placeholder="BARN TOKEN"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="admin-label">
+                            Ticker *
+                        </label>
+
+                        <input
+                            id="coinTickerInput"
+                            class="admin-input"
+                            placeholder="BARN"
+                        >
+
+                    </div>
+
+
+                    <div class="md:col-span-2">
+
+                        <label class="admin-label">
+                            Contract Address *
+                        </label>
+
+                        <input
+                            id="coinCAInput"
+                            class="admin-input font-mono"
+                            placeholder="Solana Contract Address"
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="admin-label">
+                            Logo URL
+                        </label>
+
+                        <input
+                            id="coinLogoUrlInput"
+                            class="admin-input"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="admin-label">
+                            Upload Logo
+                        </label>
+
+                        <input
+                            id="coinLogoFileInput"
+                            type="file"
+                            accept="image/*"
+                            class="admin-input"
+                        >
+
+                    </div>
+
+
+                    <div class="md:col-span-2">
+
+                        <label class="admin-label">
+                            Deskripsi Singkat *
+                        </label>
+
+                        <textarea
+                            id="coinDescriptionInput"
+                            class="admin-input min-h-[100px]"
+                            placeholder="Cerita unik tentang meme coin ini..."
+                        ></textarea>
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="admin-label">
+                            Dex Buying Link
+                        </label>
+
+                        <input
+                            id="coinBuyLinkInput"
+                            class="admin-input"
+                            placeholder="https://..."
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="admin-label">
+                            Twitter / X Coin
+                        </label>
+
+                        <input
+                            id="coinTwitterInput"
+                            class="admin-input"
+                            placeholder="https://x.com/..."
+                        >
+
+                    </div>
+
+
+                    <div>
+
+                        <label class="admin-label">
+                            Holders Awal
+                        </label>
+
+                        <input
+                            id="coinHoldersInput"
+                            type="number"
+                            min="0"
+                            class="admin-input"
+                            value="0"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="mt-5 flex flex-wrap gap-3">
+
+                    <button
+                        id="addCoinButton"
+                        class="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 font-semibold"
+                    >
+                        Add Coin
+                    </button>
+
+                    <span
+                        id="coinAddStatus"
+                        class="text-sm text-zinc-500 self-center"
+                    ></span>
+
+                </div>
+
+            </section>
+
+
+            <!-- COIN MANAGEMENT -->
+
+            <section class="glass rounded-3xl p-5 sm:p-7">
+
+                <div class="flex items-center justify-between mb-6">
+
+                    <div>
+
+                        <h2 class="font-bold text-xl">
+                            Active Coins
+                        </h2>
+
+                        <p class="text-xs text-zinc-500 mt-1">
+                            Manage released tokens
+                        </p>
+
+                    </div>
+
+                    <div
+                        id="adminCoinCount"
+                        class="text-sm text-zinc-500"
+                    >
+                        0 coins
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="adminCoinsList"
+                    class="space-y-3"
+                ></div>
+
+            </section>
+
+        </div>
+    `;
+
+
+    document.body.appendChild(
+        panel
+    );
+
+    refreshIcons();
+
+    renderAdminCoins();
+
+
+    document
+        .getElementById(
+            "closeAdminPanel"
+        )
+        .addEventListener(
+            "click",
+            () => panel.remove()
+        );
+
+
+    document
+        .getElementById(
+            "saveSiteButton"
+        )
+        .addEventListener(
+            "click",
+            saveSiteSettings
+        );
+
+
+    document
+        .getElementById(
+            "saveTwitterButton"
+        )
+        .addEventListener(
+            "click",
+            saveTwitterSettings
+        );
+
+
+    document
+        .getElementById(
+            "addCoinButton"
+        )
+        .addEventListener(
+            "click",
+            addCoin
+        );
+}
+
+
+/* =========================================================
+   SAVE SITE SETTINGS
+========================================================= */
+
+async function saveSiteSettings() {
+
+    const title =
+        document
+            .getElementById(
+                "siteTitleInput"
+            )
+            .value
+            .trim() ||
+        "MemeBarn";
+
+
+    const file =
+        document
+            .getElementById(
+                "siteLogoInput"
+            )
+            .files[0];
+
+
+    let logo =
+        siteConfig.logo || "";
+
+
+    const status =
+        document.getElementById(
+            "siteSaveStatus"
+        );
+
+
+    try {
+
+        if (file) {
+
+            status.textContent =
+                "Compressing logo...";
+
+            logo =
+                await compressImage(
+                    file,
+                    100 * 1024
+                );
+        }
+
+
+        const newConfig = {
+            ...siteConfig,
+            title,
+            logo
+        };
+
+
+        if (
+            firebaseReady &&
+            db
+        ) {
+
+            await db
+                .collection("site_config")
+                .doc("main")
+                .set(
+                    newConfig,
+                    {
+                        merge: true
+                    }
+                );
+
+        } else {
+
+            saveLocalConfig(
+                newConfig
+            );
+        }
+
+
+        siteConfig =
+            newConfig;
+
+        saveLocalConfig(
+            siteConfig
+        );
+
+        renderSiteConfig();
+
+
+        status.textContent =
+            "Saved ✓";
+
+        status.className =
+            "text-sm text-emerald-400 self-center";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "Gagal menyimpan.";
+
+        status.className =
+            "text-sm text-red-400 self-center";
+    }
+}
+
+
+/* =========================================================
+   SAVE TWITTER
+========================================================= */
+
+async function saveTwitterSettings() {
+
+    const input =
+        document.getElementById(
+            "twitterUrlInput"
+        );
+
+    const status =
+        document.getElementById(
+            "twitterSaveStatus"
+        );
+
+
+    const twitter =
+        input.value.trim();
+
+
+    try {
+
+        const newConfig = {
+            ...siteConfig,
+            twitter
+        };
+
+
+        if (
+            firebaseReady &&
+            db
+        ) {
+
+            await db
+                .collection("site_config")
+                .doc("main")
+                .set(
+                    newConfig,
+                    {
+                        merge: true
+                    }
+                );
+
+        } else {
+
+            saveLocalConfig(
+                newConfig
+            );
+        }
+
+
+        siteConfig =
+            newConfig;
+
+        saveLocalConfig(
+            siteConfig
+        );
+
+        renderSiteConfig();
+
+
+        status.textContent =
+            "Saved ✓";
+
+        status.className =
+            "text-sm text-emerald-400 ml-3";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "Gagal menyimpan.";
+
+        status.className =
+            "text-sm text-red-400 ml-3";
+    }
+}
+
+
+/* =========================================================
+   ADD COIN
+========================================================= */
+
+async function addCoin() {
+
+    const name =
+        document
+            .getElementById(
+                "coinNameInput"
+            )
+            .value
+            .trim();
+
+
+    const ticker =
+        document
+            .getElementById(
+                "coinTickerInput"
+            )
+            .value
+            .trim()
+            .toUpperCase();
+
+
+    const ca =
+        document
+            .getElementById(
+                "coinCAInput"
+            )
+            .value
+            .trim();
+
+
+    const logoUrl =
+        document
+            .getElementById(
+                "coinLogoUrlInput"
+            )
+            .value
+            .trim();
+
+
+    const logoFile =
+        document
+            .getElementById(
+                "coinLogoFileInput"
+            )
+            .files[0];
+
+
+    const description =
+        document
+            .getElementById(
+                "coinDescriptionInput"
+            )
+            .value
+            .trim();
+
+
+    const buyLink =
+        document
+            .getElementById(
+                "coinBuyLinkInput"
+            )
+            .value
+            .trim();
+
+
+    const twitter =
+        document
+            .getElementById(
+                "coinTwitterInput"
+            )
+            .value
+            .trim();
+
+
+    const holders =
+        Number(
+            document
+                .getElementById(
+                    "coinHoldersInput"
+                )
+                .value || 0
+        );
+
+
+    const status =
+        document.getElementById(
+            "coinAddStatus"
+        );
+
+
+    if (!name) {
+
+        status.textContent =
+            "Nama koin wajib diisi.";
+
+        status.className =
+            "text-sm text-red-400 self-center";
+
+        return;
+    }
+
+
+    if (!ticker) {
+
+        status.textContent =
+            "Ticker wajib diisi.";
+
+        status.className =
+            "text-sm text-red-400 self-center";
+
+        return;
+    }
+
+
+    if (!ca) {
+
+        status.textContent =
+            "Contract Address wajib diisi.";
+
+        status.className =
+            "text-sm text-red-400 self-center";
+
+        return;
+    }
+
+
+    if (!description) {
+
+        status.textContent =
+            "Deskripsi wajib diisi.";
+
+        status.className =
+            "text-sm text-red-400 self-center";
+
+        return;
+    }
+
+
+    try {
+
+        let logo =
+            logoUrl;
+
+
+        if (logoFile) {
+
+            status.textContent =
+                "Compressing logo...";
+
+            logo =
+                await compressImage(
+                    logoFile,
+                    100 * 1024
+                );
+        }
+
+
+        if (!logo) {
+
+            logo =
+                createDefaultCoinLogo(
+                    name
+                );
+        }
+
+
+        const coinData = {
+
+            name,
+
+            ticker,
+
+            ca,
+
+            logo,
+
+            description,
+
+            buyLink,
+
+            twitter,
+
+            holders,
+
+            createdAt:
+                new Date().toISOString()
+
+        };
+
+
+        if (
+            firebaseReady &&
+            db
+        ) {
+
+            await db
+                .collection(
+                    "meme_coins"
+                )
+                .add(
+                    coinData
+                );
+
+        } else {
+
+            const local =
+                getLocalCoins();
+
+            local.push({
+                id:
+                    "local_" +
+                    Date.now(),
+
+                ...coinData
+            });
+
+            saveLocalCoins(
+                local
+            );
+
+            coins =
+                local;
+
+            renderCoins();
+        }
+
+
+        status.textContent =
+            "Coin berhasil ditambahkan ✓";
+
+        status.className =
+            "text-sm text-emerald-400 self-center";
+
+
+        clearCoinForm();
+
+        renderAdminCoins();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "Gagal menambahkan coin.";
+
+        status.className =
+            "text-sm text-red-400 self-center";
+    }
+}
+
+
+/* =========================================================
+   CLEAR COIN FORM
+========================================================= */
+
+function clearCoinForm() {
+
+    const ids = [
+
+        "coinNameInput",
+        "coinTickerInput",
+        "coinCAInput",
+        "coinLogoUrlInput",
+        "coinDescriptionInput",
+        "coinBuyLinkInput",
+        "coinTwitterInput"
+
+    ];
+
+
+    ids.forEach(id => {
+
+        const el =
+            document.getElementById(
+                id
+            );
+
+        if (el) {
+            el.value = "";
+        }
+
+    });
+
+
+    const holders =
+        document.getElementById(
+            "coinHoldersInput"
+        );
+
+    if (holders) {
+        holders.value = "0";
+    }
+
+
+    const file1 =
+        document.getElementById(
+            "coinLogoFileInput"
+        );
+
+    if (file1) {
+        file1.value = "";
+    }
+}
+
+
+/* =========================================================
+   ADMIN COIN LIST
+========================================================= */
+
+function renderAdminCoins() {
+
+    const list =
+        document.getElementById(
+            "adminCoinsList"
+        );
+
+    const count =
+        document.getElementById(
+            "adminCoinCount"
+        );
+
+
+    if (!list) {
+        return;
+    }
+
+
+    if (count) {
+
+        count.textContent =
+            `${coins.length} coin${
+                coins.length === 1
+                    ? ""
+                    : "s"
+            }`;
+    }
+
+
+    if (!coins.length) {
+
+        list.innerHTML = `
+            <div class="text-center py-10 text-zinc-600">
+                Belum ada coin.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    list.innerHTML =
+        coins.map(coin => {
+
+            const logo =
+                coin.logo ||
+                createDefaultCoinLogo(
+                    coin.name || "M"
+                );
+
+
+            return `
+                <div class="flex items-center gap-3 p-3 rounded-2xl bg-black/20 border border-white/5">
+
+                    <img
+                        src="${escapeAttribute(logo)}"
+                        class="w-12 h-12 object-contain rounded-xl"
+                        alt=""
+                    >
+
+                    <div class="flex-1 min-w-0">
+
+                        <div class="font-semibold truncate">
+                            ${escapeHTML(
+                                coin.name || "Unnamed"
+                            )}
+                        </div>
+
+                        <div class="text-xs text-zinc-500 truncate">
+                            $${escapeHTML(
+                                coin.ticker || ""
+                            )}
+                            ·
+                            ${escapeHTML(
+                                coin.ca || ""
+                            )}
+                        </div>
+
+                    </div>
+
+                    <button
+                        onclick="deleteCoin('${escapeAttribute(coin.id)}')"
+                        class="px-3 py-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/10"
+                        title="Delete"
+                    >
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+
+
+    refreshIcons();
+}
+
+
+/* =========================================================
+   DELETE COIN
+========================================================= */
+
+async function deleteCoin(id) {
+
+    const coin =
+        coins.find(
+            item => item.id === id
+        );
+
+
+    if (!coin) {
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            `Hapus ${coin.name || "coin"}?`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        if (
+            firebaseReady &&
+            db &&
+            !String(id).startsWith(
+                "local_"
+            )
+        ) {
+
+            await db
+                .collection(
+                    "meme_coins"
+                )
+                .doc(id)
+                .delete();
+
+        } else {
+
+            const local =
+                getLocalCoins()
+                    .filter(
+                        item =>
+                            item.id !== id
+                    );
+
+            saveLocalCoins(
+                local
+            );
+
+            coins =
+                local;
+
+            renderCoins();
+        }
+
+
+        renderAdminCoins();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Gagal menghapus coin."
+        );
+    }
+}
+
+
+/* =========================================================
+   IMAGE COMPRESSION
+========================================================= */
+
+function compressImage(
+    file,
+    maxBytes = 100 * 1024
+) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            if (!file.type.startsWith(
+                "image/"
+            )) {
+
+                reject(
+                    new Error(
+                        "File bukan gambar."
+                    )
+                );
+
+                return;
+            }
+
+
+            const reader =
+                new FileReader();
+
+
+            reader.onload =
+                event => {
+
+                    const image =
+                        new Image();
+
+
+                    image.onload =
+                        () => {
+
+                            const canvas =
+                                document.createElement(
+                                    "canvas"
+                                );
+
+
+                            const maxDimension =
+                                1200;
+
+
+                            let width =
+                                image.width;
+
+                            let height =
+                                image.height;
+
+
+                            if (
+                                width >
+                                maxDimension ||
+                                height >
+                                maxDimension
+                            ) {
+
+                                const scale =
+                                    Math.min(
+                                        maxDimension /
+                                            width,
+
+                                        maxDimension /
+                                            height
+                                    );
+
+                                width =
+                                    Math.round(
+                                        width *
+                                        scale
+                                    );
+
+                                height =
+                                    Math.round(
+                                        height *
+                                        scale
+                                    );
+                            }
+
+
+                            canvas.width =
+                                width;
+
+                            canvas.height =
+                                height;
+
+
+                            const ctx =
+                                canvas.getContext(
+                                    "2d"
+                                );
+
+
+                            ctx.drawImage(
+                                image,
+                                0,
+                                0,
+                                width,
+                                height
+                            );
+
+
+                            let quality =
+                                0.85;
+
+
+                            function attempt() {
+
+                                const dataUrl =
+                                    canvas.toDataURL(
+                                        "image/jpeg",
+                                        quality
+                                    );
+
+
+                                const estimatedBytes =
+                                    Math.ceil(
+                                        (
+                                            dataUrl.length -
+                                            dataUrl.indexOf(",") -
+                                            1
+                                        ) * 0.75
+                                    );
+
+
+                                if (
+                                    estimatedBytes <=
+                                    maxBytes ||
+                                    quality <= 0.35
+                                ) {
+
+                                    resolve(
+                                        dataUrl
+                                    );
+
+                                    return;
+                                }
+
+
+                                quality -=
+                                    0.08;
+
+                                attempt();
+                            }
+
+
+                            attempt();
+
+                        };
+
+
+                    image.onerror =
+                        reject;
+
+
+                    image.src =
+                        event.target.result;
+                };
+
+
+            reader.onerror =
+                reject;
+
+
+            reader.readAsDataURL(
+                file
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function formatNumber(value) {
+
+    const number =
+        Number(value || 0);
+
+    return new Intl.NumberFormat(
+        "en-US"
+    ).format(number);
+}
+
+
+function formatUSD(value) {
+
+    const number =
+        Number(value);
+
+    if (!Number.isFinite(number)) {
+        return "N/A";
+    }
+
+
+    if (number >= 1000000000) {
+
+        return "$" +
+            (
+                number / 1000000000
+            ).toFixed(2) +
+            "B";
+    }
+
+
+    if (number >= 1000000) {
+
+        return "$" +
+            (
+                number / 1000000
+            ).toFixed(2) +
+            "M";
+    }
+
+
+    if (number >= 1000) {
+
+        return "$" +
+            (
+                number / 1000
+            ).toFixed(2) +
+            "K";
+    }
+
+
+    return "$" +
+        number.toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits: 2
+            }
+        );
+}
+
+
+function formatPrice(value) {
+
+    const number =
+        Number(value);
+
+
+    if (!Number.isFinite(number)) {
+        return "N/A";
+    }
+
+
+    if (number === 0) {
+        return "$0";
+    }
+
+
+    if (number < 0.000001) {
+
+        return "$" +
+            number.toExponential(4);
+    }
+
+
+    if (number < 0.01) {
+
+        return "$" +
+            number.toFixed(8);
+    }
+
+
+    if (number < 1) {
+
+        return "$" +
+            number.toFixed(5);
+    }
+
+
+    return "$" +
+        number.toLocaleString(
+            "en-US",
+            {
+                maximumFractionDigits: 4
+            }
+        );
+}
+
+
+function setText(
+    id,
+    text
+) {
+
+    const element =
+        document.getElementById(
+            id
+        );
+
+    if (element) {
+        element.textContent =
+            text;
+    }
+}
+
+
+function escapeHTML(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function escapeAttribute(value) {
+
+    return escapeHTML(
+        value
+    );
+}
+
+
+function createDefaultCoinLogo(
+    name
+) {
+
+    const letter =
+        String(
+            name || "M"
+        )
+        .charAt(0)
+        .toUpperCase();
+
+
+    const svg = `
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="300"
+            height="300"
+            viewBox="0 0 300 300"
+        >
+
+            <defs>
+
+                <linearGradient
+                    id="g"
+                    x1="0"
+                    y1="0"
+                    x2="1"
+                    y2="1"
+                >
+
+                    <stop
+                        offset="0%"
+                        stop-color="#00F2FE"
+                    />
+
+                    <stop
+                        offset="100%"
+                        stop-color="#7F00FF"
+                    />
+
+                </linearGradient>
+
+            </defs>
+
+            <rect
+                width="300"
+                height="300"
+                rx="70"
+                fill="#0F1117"
+            />
+
+            <circle
+                cx="150"
+                cy="150"
+                r="100"
+                fill="url(#g)"
+            />
+
+            <text
+                x="150"
+                y="178"
+                text-anchor="middle"
+                font-size="100"
+                font-family="Arial"
+                font-weight="bold"
+                fill="white"
+            >
+                ${escapeHTML(letter)}
+            </text>
+
+        </svg>
+    `;
+
+
+    return (
+        "data:image/svg+xml;charset=UTF-8," +
+        encodeURIComponent(svg)
+    );
+}
+
+
+function refreshIcons() {
+
+    if (
+        window.lucide &&
+        typeof lucide.createIcons ===
+            "function"
+    ) {
+
+        lucide.createIcons();
+    }
+}
+
+
+/* =========================================================
+   YEAR
+========================================================= */
+
+document.getElementById(
+    "footerYear"
+).textContent =
+    new Date().getFullYear();
+
+
+/* =========================================================
+   START APPLICATION
+========================================================= */
+
+initializeFirebaseListeners();
+
+refreshIcons();
+
+
+/* =========================================================
+   CLOSE MODAL WITH ESC
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key === "Escape"
+        ) {
+
+            closeCoinModal();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   CLICK BACKDROP TO CLOSE
+========================================================= */
+
+document.addEventListener(
+    "click",
+    function(event) {
+
+        const modal =
+            document.getElementById(
+                "coinDetailModal"
+            );
+
+
+        if (
+            modal &&
+            event.target === modal
+        ) {
+
+            closeCoinModal();
+        }
+
+    }
+);
+
+</script>
+
+</body>
+    </html>
