@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Glass Whiteboard Pro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --bg1:#0f172a;
+    --bg2:#1e293b;
+    --glass:rgba(255,255,255,0.08);
+    --border:rgba(255,255,255,0.15);
+    --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:'Inter',sans-serif;
+    background:
+    radial-gradient(circle at top left,#334155 0%,transparent 30%),
+    radial-gradient(circle at bottom right,#2563eb 0%,transparent 30%),
+    linear-gradient(135deg,var(--bg1),var(--bg2));
+}
+
+body{
+    display:flex;
+    flex-direction:column;
+}
+
+/* ===== TOP BAR ===== */
+
+.toolbar{
+    position:fixed;
+    top:18px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:20;
+
+    display:flex;
+    align-items:center;
+    gap:14px;
+
+    padding:14px 18px;
+
+    border-radius:28px;
+
+    background:var(--glass);
+
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+
+    border:1px solid var(--border);
+
+    box-shadow:var(--shadow);
+}
+
+/* ===== BUTTON ===== */
+
+.tool-btn{
+    width:58px;
+    height:58px;
+
+    border:none;
+    outline:none;
+
+    cursor:pointer;
+
+    border-radius:20px;
+
+    background:rgba(255,255,255,0.12);
+
+    color:white;
+
+    font-size:28px;
+
+    transition:0.2s ease;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 4px 14px rgba(0,0,0,.25);
+}
+
+.tool-btn:hover{
+    transform:translateY(-2px);
+    background:rgba(255,255,255,0.18);
+}
+
+.tool-btn:active{
+    transform:scale(.92);
+}
+
+/* ===== COLOR PICKER ===== */
+
+.color-wrap{
+    width:58px;
+    height:58px;
+
+    overflow:hidden;
+
+    border-radius:20px;
+
+    border:2px solid rgba(255,255,255,0.2);
+
+    box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    0 4px 14px rgba(0,0,0,.25);
+}
+
+.color-picker{
+    width:120%;
+    height:120%;
+    margin:-10%;
+    border:none;
+    cursor:pointer;
+    background:none;
+}
+
+/* ===== RANGE ===== */
+
+.slider-box{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    color:white;
+    min-width:130px;
+}
+
+.slider-label{
+    font-size:12px;
+    opacity:.8;
+}
+
+.range{
+    width:130px;
+    accent-color:white;
+}
+
+/* ===== CANVAS ===== */
+
+canvas{
+    width:100%;
+    height:100%;
+    display:block;
+    touch-action:none;
+    cursor:crosshair;
+}
+
+/* ===== TITLE ===== */
+
+.logo{
+    position:fixed;
+    top:24px;
+    left:28px;
+    z-index:10;
+
+    color:white;
+
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:.5px;
+
+    text-shadow:0 4px 10px rgba(0,0,0,.4);
+}
+
+.logo span{
+    opacity:.65;
+    font-weight:500;
+}
+
+/* ===== MOBILE ===== */
+
+@media(max-width:700px){
+
+    .toolbar{
+        width:95%;
+        justify-content:center;
+        gap:10px;
+        padding:12px;
+        border-radius:24px;
+    }
+
+    .tool-btn{
+        width:52px;
+        height:52px;
+        font-size:24px;
+    }
+
+    .slider-box{
+        min-width:90px;
+    }
+
+    .range{
+        width:90px;
+    }
+
+    .logo{
+        font-size:18px;
+        top:100px;
+        left:50%;
+        transform:translateX(-50%);
+    }
+}
+
+</style>
+</head>
+<body>
+
+<div class="logo">
+    Whiteboard <span>Ultra</span>
+</div>
+
+<div class="toolbar">
+
+    <button class="tool-btn" id="undo">↩️</button>
+
+    <button class="tool-btn" id="redo">↪️</button>
+
+    <button class="tool-btn" id="clear">🗑️</button>
+
+    <div class="color-wrap">
+        <input type="color" id="color" class="color-picker" value="#ffffff">
+    </div>
+
+    <div class="slider-box">
+        <div class="slider-label">Brush Size</div>
+        <input type="range" min="1" max="30" value="4" id="size" class="range">
+    </div>
+
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const undoBtn = document.getElementById("undo");
+const redoBtn = document.getElementById("redo");
+const clearBtn = document.getElementById("clear");
+
+const colorPicker = document.getElementById("color");
+const sizePicker = document.getElementById("size");
+
+let drawing = false;
+
+let paths = [];
+let redoStack = [];
+
+/* ===== HD QUALITY ===== */
+
+function resizeCanvas(){
+
+    const ratio = Math.max(window.devicePixelRatio || 1, 2);
+
+    canvas.width = window.innerWidth * ratio;
+    canvas.height = window.innerHeight * ratio;
+
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+
+    ctx.setTransform(ratio,0,0,ratio,0,0);
+
+    redraw();
+}
+
+window.addEventListener("resize",resizeCanvas);
+
+resizeCanvas();
+
+/* ===== POSITION ===== */
+
+function getPos(e){
+
+    const rect = canvas.getBoundingClientRect();
+
+    if(e.touches){
+
+        return{
+            x:e.touches[0].clientX - rect.left,
+            y:e.touches[0].clientY - rect.top
+        };
+    }
+
+    return{
+        x:e.clientX - rect.left,
+        y:e.clientY - rect.top
+    };
+}
+
+/* ===== DRAW ===== */
+
+function startDraw(x,y){
+
+    drawing = true;
+
+    const path = {
+        color:colorPicker.value,
+        size:parseInt(sizePicker.value),
+        points:[{x,y}]
+    };
+
+    paths.push(path);
+
+    redoStack = [];
+}
+
+function moveDraw(x,y){
+
+    if(!drawing) return;
+
+    const current = paths[paths.length - 1];
+
+    current.points.push({x,y});
+
+    redraw();
+}
+
+function stopDraw(){
+
+    drawing = false;
+}
+
+/* ===== ULTRA SMOOTH CURVE ===== */
+
+function drawSmooth(points,color,size){
+
+    if(points.length < 2) return;
+
+    ctx.beginPath();
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.shadowBlur = size * 0.6;
+    ctx.shadowColor = color;
+
+    ctx.moveTo(points[0].x,points[0].y);
+
+    for(let i=1;i<points.length-1;i++){
+
+        const xc = (points[i].x + points[i+1].x)/2;
+        const yc = (points[i].y + points[i+1].y)/2;
+
+        ctx.quadraticCurveTo(
+            points[i].x,
+            points[i].y,
+            xc,
+            yc
+        );
+    }
+
+    ctx.lineTo(
+        points[points.length-1].x,
+        points[points.length-1].y
+    );
+
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+}
+
+/* ===== REDRAW ===== */
+
+function redraw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    for(const path of paths){
+
+        drawSmooth(
+            path.points,
+            path.color,
+            path.size
+        );
+    }
+}
+
+/* ===== MOUSE ===== */
+
+canvas.addEventListener("mousedown",e=>{
+
+    const p = getPos(e);
+
+    startDraw(p.x,p.y);
+});
+
+canvas.addEventListener("mousemove",e=>{
+
+    const p = getPos(e);
+
+    moveDraw(p.x,p.y);
+});
+
+canvas.addEventListener("mouseup",stopDraw);
+
+canvas.addEventListener("mouseleave",stopDraw);
+
+/* ===== TOUCH ===== */
+
+canvas.addEventListener("touchstart",e=>{
+
+    e.preventDefault();
+
+    const p = getPos(e);
+
+    startDraw(p.x,p.y);
+
+},{passive:false});
+
+canvas.addEventListener("touchmove",e=>{
+
+    e.preventDefault();
+
+    const p = getPos(e);
+
+    moveDraw(p.x,p.y);
+
+},{passive:false});
+
+canvas.addEventListener("touchend",stopDraw);
+
+/* ===== TOOLS ===== */
+
+undoBtn.onclick = ()=>{
+
+    if(paths.length){
+
+        redoStack.push(paths.pop());
+
+        redraw();
+    }
+};
+
+redoBtn.onclick = ()=>{
+
+    if(redoStack.length){
+
+        paths.push(redoStack.pop());
+
+        redraw();
+    }
+};
+
+clearBtn.onclick = ()=>{
+
+    paths = [];
+
+    redoStack = [];
+
+    redraw();
+};
+
+</script>
+
+</body>
+</html>
